@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vertical Green — A Story Told in Leaves</title>
+<meta name="description" content="A scrolling, painterly story of vertical gardens and biophilic design. Greening the world, one wall at a time." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/splitting/dist/splitting.css">
+<link rel="stylesheet" href="https://unpkg.com/splitting/dist/splitting-cells.css">
+
+<style>
+/* ==================== RESET / BASE ==================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --serif: 'Playfair Display', Georgia, serif;
+  --sans:  'Inter', system-ui, sans-serif;
+  --ink:   #f4f8f0;
+  --ink-soft: rgba(244,248,240,0.72);
+  --ink-dim:  rgba(244,248,240,0.42);
+}
+html, body {
+  background: #060d08;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+::selection { background: #b8dcbf; color: #08140a; }
+
+/* Lenis */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* ==================== LOADER ==================== */
+#loader {
+  position: fixed; inset: 0; z-index: 9999;
+  background: radial-gradient(ellipse at center, #0c1a10 0%, #050a06 100%);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 1s ease, visibility 1s ease;
+}
+#loader.hide { opacity: 0; visibility: hidden; }
+.loader-text {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+.loader-text::after {
+  content: ''; display: block;
+  width: 100%; height: 1px;
+  background: #9dd3a2;
+  margin-top: 1rem;
+  transform-origin: left;
+  animation: loadLine 1.8s ease-in-out infinite;
+}
+@keyframes loadLine {
+  0%,100% { transform: scaleX(0); transform-origin: left; }
+  50% { transform: scaleX(1); transform-origin: left; }
+  50.01% { transform-origin: right; }
+}
+
+/* ==================== LIVING CANVAS ==================== */
+#bg-canvas {
+  position: fixed; inset: 0;
+  width: 100vw; height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.grain {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  opacity: 0.09; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.7'/></svg>");
+}
+.vignette {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.65) 100%);
+}
+
+/* ==================== NAV ==================== */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  padding: 1.6rem 2.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  mix-blend-mode: difference;
+}
+.brand {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 1.05rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.brand .dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: #fff; margin: 0 0.6rem 0.15rem; vertical-align: middle;
+}
+.chapter-indicator {
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.chapter-indicator .num {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.95rem;
+  margin-right: 0.7rem;
+}
+
+.progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 1px;
+  z-index: 60; background: rgba(255,255,255,0.08);
+}
+.progress span {
+  display: block; height: 100%; width: 0%;
+  background: #c2e9c8;
+  transition: width 0.1s linear;
+}
+
+.chapter-rail {
+  position: fixed; right: 2rem; top: 50%; transform: translateY(-50%);
+  z-index: 40;
+  display: flex; flex-direction: column; gap: 0.9rem;
+  mix-blend-mode: difference;
+}
+.chapter-rail button {
+  background: transparent; border: 0; cursor: pointer;
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  letter-spacing: 0.26em;
+  color: rgba(255,255,255,0.45);
+  padding: 0.2rem 0.4rem 0.2rem 1.4rem;
+  position: relative;
+  transition: color 0.4s;
+  text-transform: uppercase;
+}
+.chapter-rail button::before {
+  content: ''; position: absolute; left: 0; top: 50%;
+  width: 20px; height: 1px; background: currentColor;
+  transform: translateY(-50%) scaleX(0.55);
+  transform-origin: left;
+  transition: transform 0.4s, background 0.4s;
+}
+.chapter-rail button.active { color: #fff; }
+.chapter-rail button.active::before { transform: translateY(-50%) scaleX(1.4); background: #fff; }
+
+/* ==================== MAIN ==================== */
+main { position: relative; z-index: 3; }
+
+section.chapter {
+  position: relative;
+  min-height: 100vh;
+  padding: 14vh 8vw;
+  display: flex;
+  align-items: center;
+}
+
+/* Hero */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center;
+  padding: 10vh 6vw;
+  position: relative;
+}
+.hero-eyebrow {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 2rem;
+}
+.hero-title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(3rem, 11vw, 10rem);
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+.hero-title .line { display: block; }
+.hero-title .italic { font-style: italic; color: #d4eecf; }
+.hero-sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+  color: var(--ink-soft);
+  max-width: 580px;
+  line-height: 1.55;
+  margin-top: 2.2rem;
+}
+.hero-scroll {
+  margin-top: 5rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.8rem;
+  color: var(--ink-soft);
+}
+.hero-scroll .line {
+  width: 1px; height: 60px;
+  background: linear-gradient(to bottom, transparent, var(--ink));
+  animation: scrollLine 2.4s ease-in-out infinite;
+  transform-origin: top;
+}
+.hero-scroll .label {
+  font-size: 0.65rem; letter-spacing: 0.4em; text-transform: uppercase;
+}
+@keyframes scrollLine {
+  0%   { transform: scaleY(0); transform-origin: top; }
+  50%  { transform: scaleY(1); transform-origin: top; }
+  50.01% { transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* Chapter layout */
+.ch-wrap {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 7vw;
+  align-items: center;
+  max-width: 1500px;
+  margin: 0 auto;
+  width: 100%;
+}
+.ch-text { position: relative; }
+.ch-visual { position: relative; height: 80vh; }
+
+.ch-number {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(5rem, 11vw, 9.5rem);
+  line-height: 0.85;
+  color: var(--ink);
+  letter-spacing: -0.04em;
+  opacity: 0.95;
+}
+.ch-color-name {
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 1.4rem 0 1.6rem;
+}
+.ch-color-name .swatch {
+  display: inline-block;
+  width: 36px; height: 1px;
+  background: #c2e9c8;
+  vertical-align: middle;
+  margin-right: 0.8rem;
+}
+
+.ch-title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2.2rem, 5vw, 4.4rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin-bottom: 2rem;
+}
+.ch-title .italic { font-style: italic; color: #d4eecf; }
+
+.ch-body {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: clamp(1rem, 1.15vw, 1.1rem);
+  line-height: 1.75;
+  color: var(--ink-soft);
+  max-width: 480px;
+  margin-bottom: 1.4rem;
+}
+
+.ch-pull {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.3rem, 2.2vw, 1.9rem);
+  line-height: 1.35;
+  color: var(--ink);
+  margin-top: 2.2rem;
+  padding-left: 1.4rem;
+  border-left: 1px solid rgba(255,255,255,0.28);
+  max-width: 520px;
+}
+
+.ch-meta {
+  margin-top: 2.6rem;
+  display: flex; gap: 2.5rem;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.ch-meta span strong {
+  display: block;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.05rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+  margin-top: 0.3rem;
+}
+
+/* Chapter visual images */
+.ch-img {
+  position: absolute;
+  background-size: cover;
+  background-position: center;
+  border-radius: 4px;
+  box-shadow: 0 30px 90px rgba(0,0,0,0.55);
+  will-change: transform;
+  overflow: hidden;
+}
+.ch-img::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(8,16,10,0.4), transparent 40%);
+}
+.img-main  { width: 70%; height: 75%; top: 0;   right: 0; }
+.img-accent{ width: 45%; height: 45%; bottom: 0; left: 0; }
+.img-detail{ width: 28%; height: 28%; top: 38%;  left: 18%; }
+.ch-visual.reverse .img-main   { right: auto; left: 0; }
+.ch-visual.reverse .img-accent { left: auto; right: 0; }
+.ch-visual.reverse .img-detail { left: auto; right: 18%; }
+
+/* SPLITTING reveals */
+.split-title .char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(60%) rotateX(-40deg);
+  transform-origin: center bottom;
+  filter: blur(8px);
+  will-change: transform, opacity, filter;
+}
+.split-body .word, .split-pull .word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(40%);
+  filter: blur(4px);
+  will-change: transform, opacity, filter;
+}
+.fade-up { opacity: 0; transform: translateY(30px); will-change: transform, opacity; }
+
+/* Full-bleed image interlude */
+.interlude {
+  position: relative;
+  min-height: 80vh;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 14vh 8vw;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+.interlude::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, rgba(6,13,8,0.3) 0%, rgba(6,13,8,0.82) 100%);
+}
+.interlude .interlude-inner {
+  position: relative; z-index: 2;
+  max-width: 900px;
+}
+.interlude p {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.6rem, 4vw, 3.2rem);
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+/* Stats */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 14vh 8vw;
+  gap: 2rem;
+  max-width: 1500px; margin: 0 auto;
+  text-align: center;
+}
+.stat .num {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  display: block;
+  font-size: clamp(3rem, 6vw, 5rem);
+  color: #d4eecf;
+  line-height: 1;
+}
+.stat .lbl {
+  display: block;
+  margin-top: 0.8rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* Epilogue/CTA */
+.epilogue {
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 18vh 6vw 12vh;
+  position: relative;
+}
+.epilogue h2 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2.8rem, 8vw, 7rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 2rem;
+  color: var(--ink);
+}
+.epilogue h2 .italic { font-style: italic; color: #d4eecf; }
+.epilogue p {
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  color: var(--ink-soft);
+  max-width: 540px;
+  margin: 0 auto 3rem;
+  line-height: 1.7;
+}
+.btn {
+  display: inline-block;
+  padding: 1.05rem 2.4rem;
+  border: 1px solid rgba(202, 230, 195, 0.45);
+  border-radius: 50px;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink);
+  transition: background 0.5s, color 0.5s, border 0.5s;
+}
+.btn:hover { background: #cbe7c1; color: #0a1b10; border-color: #cbe7c1; }
+
+/* Footer */
+footer {
+  position: relative;
+  z-index: 4;
+  padding: 4rem 8vw 3rem;
+  text-align: center;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  background: rgba(6,13,8,0.65);
+  backdrop-filter: blur(10px);
+}
+footer p {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.6rem;
+}
+footer small {
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .ch-wrap { grid-template-columns: 1fr; gap: 3rem; }
+  .ch-visual { height: 80vw; max-height: 600px; }
+  .nav { padding: 1.2rem 1.4rem; }
+  .chapter-rail { display: none; }
+  section.chapter { padding: 16vh 7vw; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div id="loader"><p class="loader-text">Tending the garden…</p></div>
+
+<canvas id="bg-canvas"></canvas>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<header class="nav">
+  <div class="brand">Vertical Green<span class="dot"></span>SG</div>
+  <div class="chapter-indicator"><span class="num" id="navNum">—</span><span id="navName">Prologue</span></div>
+</header>
+
+<div class="progress"><span id="progBar"></span></div>
+
+<aside class="chapter-rail">
+  <button data-target="#hero">00 — Prologue</button>
+  <button data-target="#ch1">I — Roots</button>
+  <button data-target="#ch2">II — Living Walls</button>
+  <button data-target="#ch3">III — Moss</button>
+  <button data-target="#ch4">IV — Healing</button>
+  <button data-target="#ch5">V — Canopy</button>
+  <button data-target="#ch6">VI — Home</button>
+  <button data-target="#epilogue">VII — Begin</button>
+</aside>
+
+<main>
+
+<!-- ============ HERO / PROLOGUE ============ -->
+<section
+  class="hero"
+  id="hero"
+  data-color-a="#050d07"
+  data-color-b="#0e2516"
+  data-color-c="#3a6a44"
+  data-name="Prologue"
+  data-num="00"
+>
+  <p class="hero-eyebrow fade-up">Vertical Green · SG · MY · PH</p>
+  <h1 class="hero-title">
+    <span class="line split-title" data-splitting>Greening</span>
+    <span class="line split-title" data-splitting>the&nbsp;world,</span>
+    <span class="line split-title italic" data-splitting>together.</span>
+  </h1>
+  <p class="hero-sub fade-up">A story told in leaves, in light,<br/>in the slow rebellion of green against grey.</p>
+
+  <div class="hero-scroll fade-up">
+    <span class="line"></span>
+    <span class="label">begin</span>
+  </div>
+</section>
+
+<!-- ============ CHAPTER I — ROOTS ============ -->
+<section
+  class="chapter"
+  id="ch1"
+  data-color-a="#02100a"
+  data-color-b="#143a22"
+  data-color-c="#5fa46a"
+  data-name="Roots"
+  data-num="I"
+>
+  <div class="ch-wrap">
+    <div class="ch-text">
+      <div class="ch-number fade-up">I.</div>
+      <span class="ch-color-name fade-up"><span class="swatch"></span>Emerald — the colour of beginning</span>
+      <h2 class="ch-title split-title" data-splitting>For a decade, we have been planting <span class="italic">walls.</span></h2>
+      <p class="ch-body split-body" data-splitting="words">Vertical Green began with a small belief — that a wall could breathe. Ten years on, that belief has rooted across Singapore, Malaysia and the Philippines, and into more than five hundred living surfaces.</p>
+      <p class="ch-body split-body" data-splitting="words">We are gardeners of the upright world: designing, building, and tending green walls that turn concrete into canopy.</p>
+      <p class="ch-pull split-pull" data-splitting="words">Every story begins as a seed someone refused to forget.</p>
+    </div>
+    <div class="ch-visual">
+      <div class="ch-img img-main" style="background-image:url('https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=1600&q=80');"></div>
+      <div class="ch-img img-accent" style="background-image:url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1200&q=80');"></div>
+      <div class="ch-img img-detail" style="background-image:url('https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=900&q=80');"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INTERLUDE — CANOPY ============ -->
+<section
+  class="interlude"
+  data-color-a="#04140c"
+  data-color-b="#1f4a2d"
+  data-color-c="#7fbf85"
+  style="background-image:url('https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2200&q=80');"
+>
+  <div class="interlude-inner">
+    <p class="split-body" data-splitting="words">And the city, slowly, learned to <em>exhale.</em></p>
+  </div>
+</section>
+
+<!-- ============ CHAPTER II — LIVING WALLS ============ -->
+<section
+  class="chapter"
+  id="ch2"
+  data-color-a="#03150c"
+  data-color-b="#1d5a32"
+  data-color-c="#9fdba1"
+  data-name="Living Walls"
+  data-num="II"
+>
+  <div class="ch-wrap">
+    <div class="ch-visual reverse" style="order:1;">
+      <div class="ch-img img-main" style="background-image:url('https://images.unsplash.com/photo-1459411552884-841db17b9488?auto=format&fit=crop&w=1600&q=80');"></div>
+      <div class="ch-img img-accent" style="background-image:url('https://images.unsplash.com/photo-1463320726281-696a485928c7?auto=format&fit=crop&w=1200&q=80');"></div>
+      <div class="ch-img img-detail" style="background-image:url('https://images.unsplash.com/photo-1502989642968-94fbdc9eace4?auto=format&fit=crop&w=900&q=80');"></div>
+    </div>
+    <div class="ch-text" style="order:2;">
+      <div class="ch-number fade-up">II.</div>
+      <span class="ch-color-name fade-up"><span class="swatch"></span>Canopy — HyGro®Wall</span>
+      <h2 class="ch-title split-title" data-splitting>A forest, set <span class="italic">vertical.</span></h2>
+      <p class="ch-body split-body" data-splitting="words">Our patented HyGro®Wall is a self-irrigating modular system — felt-rooted, quietly fed, indoors or out. Each panel hosts dozens of species; each wall becomes a small ecosystem.</p>
+      <p class="ch-body split-body" data-splitting="words">From a single panel in a quiet corner, to a six-storey façade humming with bees, the system scales with the dream.</p>
+      <div class="ch-meta fade-up">
+        <span>System<strong>HyGro®Wall</strong></span>
+        <span>Plants per m²<strong>30+</strong></span>
+        <span>Care<strong>Auto-irrigated</strong></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHAPTER III — MOSS ============ -->
+<section
+  class="chapter"
+  id="ch3"
+  data-color-a="#0a1a10"
+  data-color-b="#456b3a"
+  data-color-c="#c8e0a8"
+  data-name="Moss"
+  data-num="III"
+>
+  <div class="ch-wrap">
+    <div class="ch-text">
+      <div class="ch-number fade-up">III.</div>
+      <span class="ch-color-name fade-up"><span class="swatch"></span>Sage — HyGro®Moss & Preserve</span>
+      <h2 class="ch-title split-title" data-splitting>The quiet colour of <span class="italic">memory.</span></h2>
+      <p class="ch-body split-body" data-splitting="words">Hand-picked from forests in Northern Europe and naturally preserved, our moss walls hold the hush of woodland inside any room — soft underfoot of the eye, sound-absorbing, never thirsty.</p>
+      <p class="ch-body split-body" data-splitting="words">HyGro®Preserve takes it further: real plants, gently kept, for the walls that light forgot.</p>
+      <p class="ch-pull split-pull" data-splitting="words">Some greens do not grow — they <em>remember.</em></p>
+    </div>
+    <div class="ch-visual">
+      <div class="ch-img img-main" style="background-image:url('https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1600&q=80');"></div>
+      <div class="ch-img img-accent" style="background-image:url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80');"></div>
+      <div class="ch-img img-detail" style="background-image:url('https://images.unsplash.com/photo-1502331538081-041522531548?auto=format&fit=crop&w=900&q=80');"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INTERLUDE — FOREST FLOOR ============ -->
+<section
+  class="interlude"
+  data-color-a="#0a1a14"
+  data-color-b="#2d6b58"
+  data-color-c="#b5e5d2"
+  style="background-image:url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=2200&q=80');"
+>
+  <div class="interlude-inner">
+    <p class="split-body" data-splitting="words">A wall is more than a surface. It is an <em>invitation</em>.</p>
+  </div>
+</section>
+
+<!-- ============ CHAPTER IV — HEALING ============ -->
+<section
+  class="chapter"
+  id="ch4"
+  data-color-a="#04140e"
+  data-color-b="#2f8568"
+  data-color-c="#c6ead4"
+  data-name="Healing"
+  data-num="IV"
+>
+  <div class="ch-wrap">
+    <div class="ch-visual reverse" style="order:1;">
+      <div class="ch-img img-main" style="background-image:url('https://images.unsplash.com/photo-1545241047-6083a3684587?auto=format&fit=crop&w=1600&q=80');"></div>
+      <div class="ch-img img-accent" style="background-image:url('https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=80');"></div>
+      <div class="ch-img img-detail" style="background-image:url('https://images.unsplash.com/photo-1493606278519-11aa9f86e40a?auto=format&fit=crop&w=900&q=80');"></div>
+    </div>
+    <div class="ch-text" style="order:2;">
+      <div class="ch-number fade-up">IV.</div>
+      <span class="ch-color-name fade-up"><span class="swatch"></span>Verdigris — the colour of return</span>
+      <h2 class="ch-title split-title" data-splitting>Where green grows, people <span class="italic">grow back.</span></h2>
+      <p class="ch-body split-body" data-splitting="words">In hospitals our walls soften the long corridors. In offices like Wise Singapore, they turned a working day into a tropical clearing. In malls and lobbies, they invite a small, surprised exhale.</p>
+      <p class="ch-body split-body" data-splitting="words">This is what biophilic design is for — not decoration, but quiet medicine.</p>
+      <div class="ch-meta fade-up">
+        <span>Notable<strong>Wise SG · Healing Walls</strong></span>
+        <span>Spaces<strong>Office · Hospital · Mall</strong></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHAPTER V — CANOPY / ROOF ============ -->
+<section
+  class="chapter"
+  id="ch5"
+  data-color-a="#180c02"
+  data-color-b="#6b8f3a"
+  data-color-c="#f0e3a5"
+  data-name="Canopy"
+  data-num="V"
+>
+  <div class="ch-wrap">
+    <div class="ch-text">
+      <div class="ch-number fade-up">V.</div>
+      <span class="ch-color-name fade-up"><span class="swatch"></span>Sunlit Leaf — HyGro®Roof & Landscape</span>
+      <h2 class="ch-title split-title" data-splitting>Skylines, <span class="italic">blooming.</span></h2>
+      <p class="ch-body split-body" data-splitting="words">Above our heads, we are turning roofs into meadows. HyGro®Roof cools buildings, cradles biodiversity, and lets a city remember it was once a forest.</p>
+      <p class="ch-body split-body" data-splitting="words">Below them, HyGro®Landscape carries the green down to the street — a continuous, living thread from canopy to kerb.</p>
+      <p class="ch-pull split-pull" data-splitting="words">Imagine the skyline, <em>flowering.</em></p>
+    </div>
+    <div class="ch-visual">
+      <div class="ch-img img-main" style="background-image:url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80');"></div>
+      <div class="ch-img img-accent" style="background-image:url('https://images.unsplash.com/photo-1542842216-77a86bb1d4d8?auto=format&fit=crop&w=1200&q=80');"></div>
+      <div class="ch-img img-detail" style="background-image:url('https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&w=900&q=80');"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHAPTER VI — HOME ============ -->
+<section
+  class="chapter"
+  id="ch6"
+  data-color-a="#0a160e"
+  data-color-b="#3a7d52"
+  data-color-c="#e6f0c8"
+  data-name="Home"
+  data-num="VI"
+>
+  <div class="ch-wrap">
+    <div class="ch-visual reverse" style="order:1;">
+      <div class="ch-img img-main" style="background-image:url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1600&q=80');"></div>
+      <div class="ch-img img-accent" style="background-image:url('https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?auto=format&fit=crop&w=1200&q=80');"></div>
+      <div class="ch-img img-detail" style="background-image:url('https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?auto=format&fit=crop&w=900&q=80');"></div>
+    </div>
+    <div class="ch-text" style="order:2;">
+      <div class="ch-number fade-up">VI.</div>
+      <span class="ch-color-name fade-up"><span class="swatch"></span>Hearth Green — the colour of home</span>
+      <h2 class="ch-title split-title" data-splitting>A house that <span class="italic">breathes.</span></h2>
+      <p class="ch-body split-body" data-splitting="words">A single living panel by the kitchen window. A moss inscription above the bed. A hanging mat of ferns at the entrance to greet you, every evening, with the same quiet kindness.</p>
+      <p class="ch-body split-body" data-splitting="words">Biophilic design at home is not a luxury — it is a daily, gentle remembering that we, too, are growing things.</p>
+      <p class="ch-pull split-pull" data-splitting="words">Plant a wall. Plant a feeling. Plant <em>a future.</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATS ============ -->
+<section
+  class="stats"
+  data-color-a="#06140a"
+  data-color-b="#1d4a2a"
+  data-color-c="#9fc8a3"
+>
+  <div class="stat"><span class="num" data-target="10">0</span><span class="lbl">years of vertical greenery</span></div>
+  <div class="stat"><span class="num" data-target="3">0</span><span class="lbl">countries · SG · MY · PH</span></div>
+  <div class="stat"><span class="num" data-target="500">0</span><span class="lbl">walls brought to life</span></div>
+  <div class="stat"><span class="num" data-target="8">0</span><span class="lbl">HyGro® systems, one promise</span></div>
+</section>
+
+<!-- ============ EPILOGUE ============ -->
+<section
+  class="epilogue"
+  id="epilogue"
+  data-color-a="#0a1810"
+  data-color-b="#3a7f4a"
+  data-color-c="#e6f5d2"
+  data-name="Begin"
+  data-num="VII"
+>
+  <p class="hero-eyebrow fade-up">vii — your wall, your story</p>
+  <h2>
+    <span class="split-title" data-splitting>Tell us about your </span><span class="italic split-title" data-splitting>wall.</span>
+  </h2>
+  <p class="fade-up">Conceptual design, supply, installation, long-term care — from a single panel to a full tropical oasis. We will meet you wherever you start.</p>
+  <a href="mailto:hello@verticalgreen.com.sg" class="btn fade-up">Begin a project →</a>
+</section>
+
+</main>
+
+<footer>
+  <p>Vertical Green Pte Ltd — Greening the World Together.</p>
+  <small>SG · MY · PH · A scrolling tribute · Imagery via Unsplash</small>
+</footer>
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<script src="https://unpkg.com/splitting/dist/splitting.min.js"></script>
+
+<script>
+/* =====================================================
+   VERTICAL GREEN — a story told in leaves
+   ===================================================== */
+
+window.addEventListener('load', () => {
+  setTimeout(() => document.getElementById('loader').classList.add('hide'), 700);
+});
+
+/* ---------- SPLITTING ---------- */
+Splitting();
+
+/* ---------- LENIS ---------- */
+const lenis = new Lenis({
+  duration: 1.5,
+  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+  smoothWheel: true,
+  wheelMultiplier: 1.0,
+  touchMultiplier: 1.4,
+});
+function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+requestAnimationFrame(raf);
+
+const progBar = document.getElementById('progBar');
+lenis.on('scroll', ({ scroll, limit }) => {
+  if (progBar) progBar.style.width = (limit ? (scroll/limit)*100 : 0) + '%';
+});
+
+/* ---------- THREE.JS LIVING CANVAS ---------- */
+const canvas = document.getElementById('bg-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+const scene = new THREE.Scene();
+const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+const vertexShader = `void main(){ gl_Position = vec4(position, 1.0); }`;
+const fragmentShader = `
+  precision highp float;
+  uniform float uTime;
+  uniform vec2  uResolution;
+  uniform vec2  uMouse;
+  uniform vec3  uColorA;
+  uniform vec3  uColorB;
+  uniform vec3  uColorC;
+
+  vec2 hash2(vec2 p){
+    p = vec2(dot(p,vec2(127.1,311.7)), dot(p,vec2(269.5,183.3)));
+    return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+  }
+  float noise(in vec2 p){
+    const float K1 = 0.366025404;
+    const float K2 = 0.211324865;
+    vec2 i = floor(p + (p.x+p.y)*K1);
+    vec2 a = p - i + (i.x+i.y)*K2;
+    float m = step(a.y, a.x);
+    vec2 o = vec2(m, 1.0-m);
+    vec2 b = a - o + K2;
+    vec2 c = a - 1.0 + 2.0*K2;
+    vec3 h = max(0.5 - vec3(dot(a,a), dot(b,b), dot(c,c)), 0.0);
+    vec3 n = h*h*h*h*vec3(
+      dot(a, hash2(i+0.0)),
+      dot(b, hash2(i+o)),
+      dot(c, hash2(i+1.0))
+    );
+    return dot(n, vec3(70.0));
+  }
+  float fbm(vec2 p){
+    float v = 0.0; float a = 0.55;
+    for (int i = 0; i < 6; i++) {
+      v += a * noise(p);
+      p = p * 2.05 + vec2(2.7, 1.3);
+      a *= 0.5;
+    }
+    return v;
+  }
+
+  void main(){
+    vec2 uv = gl_FragCoord.xy / uResolution.xy;
+    float aspect = uResolution.x / uResolution.y;
+    vec2 p = vec2((uv.x - 0.5) * aspect, uv.y - 0.5);
+
+    vec2 m = uMouse - vec2(0.5*aspect, 0.5);
+    float md = length(p - m);
+    vec2 warp = (p - m) / max(md, 0.001) * exp(-md * 2.2) * 0.5;
+
+    float t = uTime * 0.08;
+    vec2 q = vec2(
+      fbm(p * 1.6 + vec2(t*0.7,  t*0.3) + warp),
+      fbm(p * 1.6 + vec2(-t*0.4, t*0.6) - warp)
+    );
+    vec2 r = vec2(
+      fbm(p * 2.0 + q * 1.8 + vec2(1.7, 9.2) + t),
+      fbm(p * 2.0 + q * 1.8 + vec2(8.3, 2.8) - t*0.7)
+    );
+    float f = fbm(p * 1.8 + r * 1.4);
+
+    // leaf-vein streaks
+    float stroke = fbm(p * 9.0 + vec2(r.x * 4.0, 0.0));
+    f += stroke * 0.07;
+
+    vec3 col = mix(uColorA, uColorB, smoothstep(-0.3, 0.65, f));
+    col = mix(col, uColorC, smoothstep(0.55, 1.05, fbm(p * 2.4 + r) + 0.15));
+
+    float glow = exp(-md * 5.0) * 0.18;
+    col += glow * (uColorC * 0.6 + 0.4);
+
+    float v = 1.0 - length(uv - 0.5) * 0.95;
+    col *= clamp(v, 0.3, 1.0);
+
+    float g = fract(sin(dot(uv * uResolution, vec2(12.9898, 78.233))) * 43758.5453);
+    col += (g - 0.5) * 0.022;
+
+    gl_FragColor = vec4(col, 1.0);
+  }
+`;
+
+const hexToVec3 = (hex) => {
+  const h = hex.replace('#','');
+  const n = parseInt(h.length === 3 ? h.split('').map(c=>c+c).join('') : h, 16);
+  return new THREE.Vector3(((n>>16)&255)/255, ((n>>8)&255)/255, (n&255)/255);
+};
+
+const uniforms = {
+  uTime: { value: 0 },
+  uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+  uMouse: { value: new THREE.Vector2(0.5 * window.innerWidth/window.innerHeight, 0.5) },
+  uColorA: { value: hexToVec3('#050d07') },
+  uColorB: { value: hexToVec3('#0e2516') },
+  uColorC: { value: hexToVec3('#3a6a44') },
+};
+
+const mat = new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms });
+const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat);
+scene.add(quad);
+
+const mouseTarget = { x: 0.5, y: 0.5 };
+window.addEventListener('mousemove', (e) => {
+  mouseTarget.x = e.clientX / window.innerWidth;
+  mouseTarget.y = 1.0 - (e.clientY / window.innerHeight);
+});
+window.addEventListener('touchmove', (e) => {
+  if (!e.touches[0]) return;
+  mouseTarget.x = e.touches[0].clientX / window.innerWidth;
+  mouseTarget.y = 1.0 - e.touches[0].clientY / window.innerHeight;
+}, { passive: true });
+
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+});
+
+const currentColors = {
+  a: { r: 0.020, g: 0.050, b: 0.027 },
+  b: { r: 0.055, g: 0.145, b: 0.085 },
+  c: { r: 0.227, g: 0.416, b: 0.266 },
+};
+
+const clock = new THREE.Clock();
+function render(){
+  uniforms.uTime.value = clock.getElapsedTime();
+  const aspect = window.innerWidth / window.innerHeight;
+  const tx = mouseTarget.x * aspect;
+  const ty = mouseTarget.y;
+  uniforms.uMouse.value.x += (tx - uniforms.uMouse.value.x) * 0.06;
+  uniforms.uMouse.value.y += (ty - uniforms.uMouse.value.y) * 0.06;
+
+  uniforms.uColorA.value.set(currentColors.a.r, currentColors.a.g, currentColors.a.b);
+  uniforms.uColorB.value.set(currentColors.b.r, currentColors.b.g, currentColors.b.b);
+  uniforms.uColorC.value.set(currentColors.c.r, currentColors.c.g, currentColors.c.b);
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(render);
+}
+render();
+
+/* ---------- GSAP ---------- */
+gsap.registerPlugin(ScrollTrigger);
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add((t) => lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+
+/* Hero reveal */
+gsap.to('.hero .split-title .char', {
+  opacity: 1, y: 0, rotateX: 0, filter: 'blur(0px)',
+  duration: 1.4, ease: 'expo.out', stagger: 0.04, delay: 0.7,
+});
+gsap.to('.hero .fade-up', {
+  opacity: 1, y: 0, duration: 1.3, ease: 'power3.out',
+  stagger: 0.18, delay: 1.6,
+});
+
+function setupSection(section) {
+  /* titles */
+  section.querySelectorAll('.split-title').forEach((el) => {
+    const chars = el.querySelectorAll('.char');
+    if (!chars.length) return;
+    gsap.to(chars, {
+      opacity: 1, y: 0, rotateX: 0, filter: 'blur(0px)',
+      duration: 1.4, ease: 'expo.out', stagger: 0.025,
+      scrollTrigger: { trigger: el, start: 'top 80%' },
+    });
+  });
+  /* body words */
+  section.querySelectorAll('.split-body, .split-pull').forEach((el) => {
+    const words = el.querySelectorAll('.word');
+    if (!words.length) return;
+    gsap.to(words, {
+      opacity: 1, y: 0, filter: 'blur(0px)',
+      duration: 1.0, ease: 'power3.out', stagger: 0.022,
+      scrollTrigger: { trigger: el, start: 'top 86%' },
+    });
+  });
+  /* fade-ups */
+  section.querySelectorAll('.fade-up').forEach((el) => {
+    gsap.to(el, {
+      opacity: 1, y: 0, duration: 1.2, ease: 'power3.out',
+      scrollTrigger: { trigger: el, start: 'top 88%' },
+    });
+  });
+  /* parallax ch-number */
+  const num = section.querySelector('.ch-number');
+  if (num) {
+    gsap.to(num, {
+      y: -90, ease: 'none',
+      scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: true },
+    });
+  }
+  /* parallax images */
+  section.querySelectorAll('.img-main').forEach((img) => {
+    gsap.fromTo(img, { y: 40 }, {
+      y: -60, ease: 'none',
+      scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: true },
+    });
+  });
+  section.querySelectorAll('.img-accent').forEach((img) => {
+    gsap.fromTo(img, { y: -30 }, {
+      y: 50, ease: 'none',
+      scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: true },
+    });
+  });
+  section.querySelectorAll('.img-detail').forEach((img) => {
+    gsap.fromTo(img, { y: 10 }, {
+      y: -40, ease: 'none', rotation: -2,
+      scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: true },
+    });
+  });
+  /* image entrance */
+  section.querySelectorAll('.ch-img').forEach((img, i) => {
+    gsap.from(img, {
+      opacity: 0, scale: 0.94, y: 60,
+      duration: 1.4, ease: 'power3.out', delay: i * 0.12,
+      scrollTrigger: { trigger: section, start: 'top 75%' },
+    });
+  });
+}
+document.querySelectorAll('section.hero, section.chapter, section.interlude, section.epilogue, section.stats')
+  .forEach(setupSection);
+
+/* ---------- COLOR TRANSITIONS ---------- */
+function tweenColor(target, hex, duration = 1.6) {
+  const c = hexToVec3(hex);
+  gsap.to(target, { r: c.x, g: c.y, b: c.z, duration, ease: 'sine.inOut' });
+}
+document.querySelectorAll('[data-color-a]').forEach((sec) => {
+  const a = sec.dataset.colorA, b = sec.dataset.colorB, c = sec.dataset.colorC;
+  ScrollTrigger.create({
+    trigger: sec, start: 'top 60%', end: 'bottom 40%',
+    onEnter:     () => { tweenColor(currentColors.a,a); tweenColor(currentColors.b,b); tweenColor(currentColors.c,c); },
+    onEnterBack: () => { tweenColor(currentColors.a,a); tweenColor(currentColors.b,b); tweenColor(currentColors.c,c); },
+  });
+});
+
+/* ---------- NAV + RAIL ---------- */
+const navNum = document.getElementById('navNum');
+const navName = document.getElementById('navName');
+const railBtns = document.querySelectorAll('.chapter-rail button');
+const labelled = document.querySelectorAll('[data-name]');
+labelled.forEach((sec, i) => {
+  ScrollTrigger.create({
+    trigger: sec, start: 'top 50%', end: 'bottom 50%',
+    onToggle: (self) => {
+      if (self.isActive) {
+        navNum.textContent = sec.dataset.num || '—';
+        navName.textContent = sec.dataset.name || '';
+        railBtns.forEach(b => b.classList.remove('active'));
+        if (railBtns[i]) railBtns[i].classList.add('active');
+      }
+    },
+  });
+});
+railBtns.forEach((b) => {
+  b.addEventListener('click', () => {
+    const target = document.querySelector(b.dataset.target);
+    if (target) lenis.scrollTo(target, { duration: 1.8 });
+  });
+});
+
+/* ---------- STAT COUNTERS ---------- */
+gsap.utils.toArray('.num').forEach((el) => {
+  const target = parseInt(el.dataset.target, 10);
+  const obj = { val: 0 };
+  ScrollTrigger.create({
+    trigger: el, start: 'top 85%', once: true,
+    onEnter: () => {
+      gsap.to(obj, {
+        val: target, duration: 2, ease: 'power2.out',
+        onUpdate: () => { el.textContent = Math.floor(obj.val); },
+      });
+    },
+  });
+});
+
+/* refresh after fonts/images */
+window.addEventListener('load', () => setTimeout(() => ScrollTrigger.refresh(), 600));
+</script>
+</body>
+</html>
