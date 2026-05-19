@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vertical Green — Greening the World Together</title>
+<meta name="description" content="A living, breathing, vertical world. Biophilic design, vertical gardens, and green walls that connect people to a greener, healthier, happier environment." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- Loading screen -->
+<div id="loader">
+  <div class="loader-inner">
+    <div class="leaf-spin">
+      <svg viewBox="0 0 64 64" width="56" height="56" aria-hidden="true">
+        <path d="M32 4C16 16 8 28 8 42c0 10 8 18 18 18 0-12 4-22 14-30 0 14-8 24-20 28 22 0 36-14 36-36 0-8-4-14-4-14S44 6 32 4z" fill="#9dd3a2"/>
+      </svg>
+    </div>
+    <p class="loader-text">A living world is unfolding…</p>
+  </div>
+</div>
+
+<!-- Fixed 3D canvas (background) -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Soft vignette + grain overlay -->
+<div class="grain"></div>
+<div class="vignette"></div>
+
+<!-- Floating top nav -->
+<header class="nav">
+  <div class="logo">
+    <span class="logo-mark">◉</span> Vertical Green
+  </div>
+  <nav>
+    <a href="#mission">Mission</a>
+    <a href="#philosophy">Philosophy</a>
+    <a href="#products">Products</a>
+    <a href="#projects">Projects</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<!-- Scroll progress bar -->
+<div class="scroll-progress"><span></span></div>
+
+<main>
+
+<!-- ========== HERO ========== -->
+<section class="hero" id="hero">
+  <div class="hero-bg" style="background-image:url('https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=2000&q=80');"></div>
+  <div class="hero-mist"></div>
+
+  <div class="hero-content">
+    <p class="kicker reveal">Singapore · Malaysia · Philippines</p>
+    <h1 class="hero-title">
+      <span class="word reveal-word">Greening</span>
+      <span class="word reveal-word">the&nbsp;World</span>
+      <span class="word reveal-word italic">Together.</span>
+    </h1>
+    <p class="hero-sub reveal">A living tapestry of leaves, light and breath —<br/>woven into the walls of the world.</p>
+    <div class="hero-scroll reveal">
+      <span class="line"></span>
+      <span class="label">scroll</span>
+    </div>
+  </div>
+</section>
+
+<!-- ========== INTRO QUOTE ========== -->
+<section class="quote-block" id="mission">
+  <div class="quote-wrap">
+    <p class="quote-eyebrow reveal">Our Mission</p>
+    <h2 class="big-quote">
+      <span class="line-reveal">We believe a wall</span>
+      <span class="line-reveal">can <em>breathe</em>.</span>
+      <span class="line-reveal">That a building</span>
+      <span class="line-reveal">can <em>bloom</em>.</span>
+    </h2>
+    <p class="quote-foot reveal">For over a decade we have transformed concrete into canopy —<br/>connecting people to a greener, healthier, happier environment.</p>
+  </div>
+</section>
+
+<!-- ========== PARALLAX SCENE 1 ========== -->
+<section class="parallax-scene scene-1">
+  <div class="layer back"   data-depth="0.1" style="background-image:url('https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2000&q=80');"></div>
+  <div class="layer mid"    data-depth="0.35"></div>
+  <div class="layer front"  data-depth="0.6">
+    <div class="overlay-card">
+      <p class="card-eyebrow">Living Walls</p>
+      <h3>A forest, vertical.</h3>
+      <p class="card-body">Real plants, rooted in our patented HyGro®Wall system — irrigated, breathing, alive. Every panel is a small ecosystem; every wall a quiet rebellion against grey.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== PHILOSOPHY ========== -->
+<section class="philosophy" id="philosophy">
+  <div class="philo-grid">
+    <div class="philo-text">
+      <p class="kicker reveal">Philosophy</p>
+      <h2 class="reveal">Biophilic design,<br/><em>beautifully accessible.</em></h2>
+      <p class="reveal">Greenery should not be a luxury reserved for postcards and rainforests. It should live in our offices, our homes, our hospitals — anywhere a human breathes.</p>
+      <p class="reveal">We design for the senses you forgot you had: the hush of leaves, the cool of moss, the soft green light that makes a room feel like a held breath.</p>
+    </div>
+    <div class="philo-images">
+      <div class="ph-img ph1" style="background-image:url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1400&q=80');"></div>
+      <div class="ph-img ph2" style="background-image:url('https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=1400&q=80');"></div>
+      <div class="ph-img ph3" style="background-image:url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1400&q=80');"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== HORIZONTAL PINNED — PRODUCTS ========== -->
+<section class="products" id="products">
+  <div class="pin-wrap">
+    <div class="pin-header">
+      <p class="kicker">The HyGro® Family</p>
+      <h2>Eight ways to <em>bring nature in.</em></h2>
+    </div>
+    <div class="track">
+      <article class="product-card">
+        <div class="pc-img" style="background-image:url('https://images.unsplash.com/photo-1459411552884-841db17b9488?auto=format&fit=crop&w=1400&q=80');"></div>
+        <div class="pc-body">
+          <h4>HyGro®Wall</h4>
+          <p>A living, breathing vertical garden. Self-irrigating modular panels host hundreds of species, indoors or out.</p>
+        </div>
+      </article>
+      <article class="product-card">
+        <div class="pc-img" style="background-image:url('https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&w=1400&q=80');"></div>
+        <div class="pc-body">
+          <h4>HyGro®Roof</h4>
+          <p>Green roofs that cool buildings, cradle biodiversity, and turn skylines into meadows.</p>
+        </div>
+      </article>
+      <article class="product-card">
+        <div class="pc-img" style="background-image:url('https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1400&q=80');"></div>
+        <div class="pc-body">
+          <h4>HyGro®Moss</h4>
+          <p>100% preserved moss from Northern European forests — soft, sound-absorbing, no maintenance, forever green.</p>
+        </div>
+      </article>
+      <article class="product-card">
+        <div class="pc-img" style="background-image:url('https://images.unsplash.com/photo-1502331538081-041522531548?auto=format&fit=crop&w=1400&q=80');"></div>
+        <div class="pc-body">
+          <h4>HyGro®Preserve</h4>
+          <p>Real plants, naturally preserved. The look of life without the thirst — perfect for low-light, hard-to-reach walls.</p>
+        </div>
+      </article>
+      <article class="product-card">
+        <div class="pc-img" style="background-image:url('https://images.unsplash.com/photo-1502989642968-94fbdc9eace4?auto=format&fit=crop&w=1400&q=80');"></div>
+        <div class="pc-body">
+          <h4>HyGro®Landscape</h4>
+          <p>Outdoor landscapes that flow from soil to sky. End-to-end design, install and care.</p>
+        </div>
+      </article>
+      <article class="product-card">
+        <div class="pc-img" style="background-image:url('https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1400&q=80&sat=-30');"></div>
+        <div class="pc-body">
+          <h4>HyGro®Mat &amp; Pot &amp; Artificial</h4>
+          <p>Mats, pots and lifelike artificial greenery for every brief, every budget, every brief space of light.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ========== PARALLAX SCENE 2 ========== -->
+<section class="parallax-scene scene-2">
+  <div class="layer back" data-depth="0.1" style="background-image:url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2000&q=80');"></div>
+  <div class="layer front" data-depth="0.6">
+    <div class="overlay-card right">
+      <p class="card-eyebrow">A feeling</p>
+      <h3>Imagine the city, exhaling.</h3>
+      <p class="card-body">A green wall is more than a surface. It is an invitation: to slow, to look up, to remember that we are part of something rooted, growing, alive.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== PROJECTS ========== -->
+<section class="projects" id="projects">
+  <p class="kicker reveal center">Selected Work</p>
+  <h2 class="reveal center">From <em>a single panel</em> to <em>a tropical oasis.</em></h2>
+
+  <div class="proj-grid">
+    <a class="proj proj-tall">
+      <div class="proj-img" style="background-image:url('https://images.unsplash.com/photo-1545241047-6083a3684587?auto=format&fit=crop&w=1400&q=80');"></div>
+      <div class="proj-meta">
+        <span>Office · Singapore</span>
+        <h4>Wise — A Tropical Transformation</h4>
+      </div>
+    </a>
+    <a class="proj">
+      <div class="proj-img" style="background-image:url('https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1400&q=80');"></div>
+      <div class="proj-meta">
+        <span>Hospitality</span>
+        <h4>Lobby of Living Light</h4>
+      </div>
+    </a>
+    <a class="proj">
+      <div class="proj-img" style="background-image:url('https://images.unsplash.com/photo-1493606278519-11aa9f86e40a?auto=format&fit=crop&w=1400&q=80');"></div>
+      <div class="proj-meta">
+        <span>Retail</span>
+        <h4>The Quiet Forest</h4>
+      </div>
+    </a>
+    <a class="proj proj-wide">
+      <div class="proj-img" style="background-image:url('https://images.unsplash.com/photo-1463320726281-696a485928c7?auto=format&fit=crop&w=1800&q=80');"></div>
+      <div class="proj-meta">
+        <span>Healthcare</span>
+        <h4>The Healing Wall</h4>
+      </div>
+    </a>
+    <a class="proj">
+      <div class="proj-img" style="background-image:url('https://images.unsplash.com/photo-1542842216-77a86bb1d4d8?auto=format&fit=crop&w=1400&q=80');"></div>
+      <div class="proj-meta">
+        <span>Residential</span>
+        <h4>A House That Breathes</h4>
+      </div>
+    </a>
+    <a class="proj">
+      <div class="proj-img" style="background-image:url('https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1400&q=80');"></div>
+      <div class="proj-meta">
+        <span>Moss Installation</span>
+        <h4>Northern Light</h4>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- ========== EMOTIONAL FULL-BLEED QUOTE ========== -->
+<section class="full-quote" style="background-image:url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=2200&q=80');">
+  <div class="full-quote-inner">
+    <p class="kicker">A small promise</p>
+    <h2 class="line-reveal-block">
+      <span>Plant a wall.</span>
+      <span>Plant a feeling.</span>
+      <span><em>Plant a future.</em></span>
+    </h2>
+  </div>
+</section>
+
+<!-- ========== STATS / NUMBERS ========== -->
+<section class="stats">
+  <div class="stat"><span class="num" data-target="10">0</span><span class="lbl">years of vertical greenery</span></div>
+  <div class="stat"><span class="num" data-target="3">0</span><span class="lbl">countries · SG · MY · PH</span></div>
+  <div class="stat"><span class="num" data-target="500">0</span><span class="lbl">walls brought to life</span></div>
+  <div class="stat"><span class="num" data-target="100">0</span><span class="lbl">% commitment to greener cities</span></div>
+</section>
+
+<!-- ========== CONTACT / CTA ========== -->
+<section class="cta" id="contact">
+  <div class="cta-bg" style="background-image:url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=2000&q=80');"></div>
+  <div class="cta-inner">
+    <p class="kicker reveal">Begin</p>
+    <h2 class="reveal">Tell us about your <em>wall.</em></h2>
+    <p class="reveal">Conceptual design, supply, installation, maintenance — from a single panel to a full tropical oasis. We will meet you wherever you start.</p>
+    <a href="mailto:hello@verticalgreen.com.sg" class="btn reveal">Start a project →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-row">
+    <span>Vertical Green Pte Ltd · Greening the World Together</span>
+    <span>SG · MY · PH</span>
+  </div>
+  <p class="foot-fine">An emotional, scrolling tribute to biophilic design.<br/>Content inspired by verticalgreen.com.sg · Imagery via Unsplash.</p>
+</footer>
+
+</main>
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
