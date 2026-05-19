@@ -1,0 +1,1864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vertical Green — Six Alcoves · World-Class Edition</title>
+<meta name="description" content="A cinematic, PBR-rendered atelier of biophilic design. Six rooms, six kinds of green, lit by image-based lighting and finished with film-grade post-processing." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/splitting/dist/splitting.css">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --serif: 'Playfair Display', Georgia, serif;
+  --sans:  'Inter', system-ui, sans-serif;
+  --ink:   #f4f8f0;
+  --ink-soft: rgba(244,248,240,0.72);
+  --ink-dim:  rgba(244,248,240,0.42);
+}
+html, body {
+  background: #050a06;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+::selection { background: #b8dcbf; color: #08140a; }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* Gate */
+#gate {
+  position: fixed; inset: 0; z-index: 9999;
+  background: radial-gradient(ellipse at center, #0a1a10 0%, #03070b 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 2rem;
+  transition: opacity 1.1s ease, visibility 1.1s ease;
+}
+#gate.hide { opacity: 0; visibility: hidden; }
+#gate h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: 1.4rem;
+  color: var(--ink);
+}
+#gate h1 .italic { font-style: italic; color: #d4eecf; }
+#gate p {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--ink-soft);
+  max-width: 520px;
+  line-height: 1.6;
+  font-size: 1.05rem;
+  margin-bottom: 2.6rem;
+}
+#gate small {
+  display: block;
+  margin-top: 2.6rem;
+  font-size: 0.66rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.gate-btns { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+.gate-btn {
+  font-family: var(--sans);
+  background: transparent;
+  border: 1px solid rgba(202,230,195,0.45);
+  border-radius: 50px;
+  padding: 1rem 2.2rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.4s, color 0.4s, border 0.4s;
+}
+.gate-btn.primary { background: #cbe7c1; color: #0a1b10; border-color: #cbe7c1; }
+.gate-btn:hover { background: #d4eecf; color: #0a1b10; border-color: #d4eecf; }
+
+#loading-progress {
+  width: 220px; height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin-top: 2rem;
+  overflow: hidden;
+}
+#loading-progress span {
+  display: block; height: 100%; width: 0%;
+  background: #d4eecf;
+  transition: width 0.3s;
+}
+
+/* Canvas */
+#scene-canvas {
+  position: fixed; inset: 0;
+  width: 100vw; height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+}
+.grain {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  opacity: 0.06; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.7'/></svg>");
+}
+.vignette {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.65) 100%);
+}
+
+/* Nav */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  padding: 1.4rem 2.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  mix-blend-mode: difference;
+}
+.brand {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 1.05rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.brand .dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#fff; margin: 0 0.5rem 0.15rem; vertical-align:middle; }
+.nav-right { display: flex; gap: 1.4rem; align-items: center; color: #fff; }
+.now-playing {
+  font-family: var(--sans);
+  font-size: 0.66rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+.now-playing .num { font-family: var(--serif); font-style: italic; font-size: 0.95rem; margin-right: 0.6rem; }
+.sound-toggle {
+  background: transparent; border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 50px;
+  width: 38px; height: 22px; position: relative; cursor: pointer;
+}
+.sound-toggle::before {
+  content: ''; position: absolute;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #fff;
+  top: 4px; left: 4px;
+  transition: transform 0.3s, background 0.3s;
+}
+.sound-toggle.on::before { transform: translateX(16px); background: #b8e0b8; }
+
+.progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 1px;
+  z-index: 60; background: rgba(255,255,255,0.08);
+}
+.progress span {
+  display: block; height: 100%; width: 0%;
+  background: #c2e9c8;
+  transition: width 0.1s linear;
+}
+
+.alcove-rail {
+  position: fixed; right: 1.8rem; top: 50%; transform: translateY(-50%);
+  z-index: 40;
+  display: flex; flex-direction: column; gap: 0.9rem;
+  mix-blend-mode: difference;
+}
+.alcove-rail button {
+  background: transparent; border: 0; cursor: pointer;
+  font-family: var(--sans);
+  font-size: 0.6rem;
+  letter-spacing: 0.26em;
+  color: rgba(255,255,255,0.42);
+  padding: 0.2rem 0.4rem 0.2rem 1.4rem;
+  position: relative;
+  text-transform: uppercase;
+}
+.alcove-rail button::before {
+  content: ''; position: absolute; left: 0; top: 50%;
+  width: 20px; height: 1px; background: currentColor;
+  transform: translateY(-50%) scaleX(0.5);
+  transform-origin: left;
+  transition: transform 0.4s, background 0.4s;
+}
+.alcove-rail button.active { color: #fff; }
+.alcove-rail button.active::before { transform: translateY(-50%) scaleX(1.4); background: #fff; }
+
+/* Main */
+main { position: relative; z-index: 3; }
+
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center;
+  padding: 10vh 6vw;
+}
+.hero-eyebrow {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 2rem;
+}
+.hero-title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 9vw, 8.5rem);
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+.hero-title .line { display: block; }
+.hero-title .italic { font-style: italic; color: #d4eecf; }
+.hero-sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  color: var(--ink-soft);
+  max-width: 620px;
+  line-height: 1.55;
+  margin-top: 2.2rem;
+}
+.hero-hint {
+  margin-top: 4.5rem;
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  line-height: 1.8;
+}
+.hero-hint span { color: var(--ink); }
+
+.alcove {
+  position: relative;
+  min-height: 125vh;
+  padding: 18vh 6vw;
+  display: flex;
+  align-items: center;
+}
+.alcove.right .alcove-inner { margin-left: auto; }
+.alcove-inner {
+  max-width: 480px;
+  position: relative;
+  z-index: 4;
+}
+.alcove-meta {
+  display: flex; align-items: baseline; gap: 1.2rem;
+  margin-bottom: 1.4rem;
+}
+.alcove-meta .num {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(3.5rem, 6vw, 5.5rem);
+  line-height: 0.85;
+  letter-spacing: -0.03em;
+}
+.alcove-meta .product {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-left: 1px solid rgba(255,255,255,0.25);
+  padding-left: 1rem;
+  padding-bottom: 0.3rem;
+}
+.alcove-title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2rem, 4.4vw, 3.8rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  margin-bottom: 1.8rem;
+}
+.alcove-title .italic { font-style: italic; color: #d4eecf; }
+.alcove-body {
+  font-weight: 300;
+  font-size: clamp(0.98rem, 1.1vw, 1.08rem);
+  line-height: 1.75;
+  color: var(--ink-soft);
+  margin-bottom: 1.4rem;
+}
+.alcove-pull {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  line-height: 1.4;
+  color: var(--ink);
+  margin-top: 2rem;
+  padding-left: 1.2rem;
+  border-left: 1px solid rgba(255,255,255,0.28);
+}
+.alcove-spec {
+  list-style: none;
+  display: flex; flex-wrap: wrap;
+  gap: 1.5rem 2.5rem;
+  margin-top: 2.4rem;
+}
+.alcove-spec li {
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.alcove-spec li strong {
+  display: block;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.05rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+  margin-top: 0.3rem;
+}
+.alcove-hint {
+  margin-top: 3rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  font-style: italic;
+}
+
+.split-title .char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(60%) rotateX(-40deg);
+  transform-origin: center bottom;
+  filter: blur(8px);
+}
+.split-body .word, .split-pull .word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(40%);
+  filter: blur(4px);
+}
+.fade-up { opacity: 0; transform: translateY(30px); }
+
+.secret-overlay {
+  position: fixed;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.4rem, 2.5vw, 2.2rem);
+  color: var(--ink);
+  text-align: center;
+  max-width: 80vw;
+  padding: 2.5rem 3rem;
+  background: rgba(8,16,10,0.78);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(212,238,207,0.18);
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 80;
+  transition: opacity 0.6s;
+  line-height: 1.4;
+}
+.secret-overlay.show { opacity: 1; }
+.secret-overlay::before { content: '✦'; display: block; font-size: 0.8rem; color: #d4eecf; margin-bottom: 1rem; letter-spacing: 0.4em; }
+
+.outro {
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 18vh 6vw;
+}
+.outro h2 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2.4rem, 7vw, 6rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin-bottom: 2rem;
+}
+.outro h2 .italic { font-style: italic; color: #d4eecf; }
+.outro p {
+  color: var(--ink-soft);
+  max-width: 560px;
+  margin: 0 auto 3rem;
+  line-height: 1.7;
+}
+.btn {
+  display: inline-block;
+  padding: 1.05rem 2.4rem;
+  border: 1px solid rgba(202,230,195,0.45);
+  border-radius: 50px;
+  font-size: 0.78rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.5s, color 0.5s, border 0.5s;
+}
+.btn:hover { background: #cbe7c1; color: #0a1b10; border-color: #cbe7c1; }
+
+footer {
+  position: relative; z-index: 4;
+  padding: 4rem 8vw 3rem;
+  text-align: center;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  background: rgba(5,10,6,0.7);
+  backdrop-filter: blur(10px);
+}
+footer p {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.6rem;
+}
+footer small {
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.toast {
+  position: fixed;
+  bottom: 2rem; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(8,16,10,0.78);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(212,238,207,0.18);
+  padding: 0.8rem 1.6rem;
+  border-radius: 50px;
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink);
+  z-index: 70;
+  opacity: 0;
+  transition: opacity 0.4s, transform 0.4s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 900px) {
+  .nav { padding: 1rem 1.3rem; }
+  .alcove-rail { display: none; }
+  .alcove { padding: 14vh 7vw; }
+  .alcove-inner { max-width: 100%; }
+  .nav-right .now-playing { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <h1>Six alcoves of <span class="italic">living green.</span></h1>
+  <p>A cinematic atelier rendered with PBR materials, image-based lighting, and film-grade post-processing. Each room is its own small world.</p>
+  <div class="gate-btns">
+    <button id="enterWithSound" class="gate-btn primary" disabled>Loading…</button>
+    <button id="enterSilent" class="gate-btn" disabled>Enter silently</button>
+  </div>
+  <div id="loading-progress"><span></span></div>
+  <small>Best with headphones · move your mouse · press <strong style="color:#d4eecf;">G</strong> · click the <strong style="color:#d4eecf;">✦</strong></small>
+</div>
+
+<canvas id="scene-canvas"></canvas>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<header class="nav">
+  <div class="brand">Vertical Green<span class="dot"></span>Atelier</div>
+  <div class="nav-right">
+    <div class="now-playing"><span class="num" id="npNum">—</span><span id="npName">Foyer</span></div>
+    <button class="sound-toggle" id="soundToggle" aria-label="Toggle sound"></button>
+  </div>
+</header>
+
+<div class="progress"><span id="progBar"></span></div>
+
+<aside class="alcove-rail">
+  <button data-target="#hero">00 — Foyer</button>
+  <button data-target="#a1">I — Living Wall</button>
+  <button data-target="#a2">II — Sky Meadow</button>
+  <button data-target="#a3">III — Moss</button>
+  <button data-target="#a4">IV — Vitrine</button>
+  <button data-target="#a5">V — Valley</button>
+  <button data-target="#a6">VI — Crystalline</button>
+  <button data-target="#outro">VII — Threshold</button>
+</aside>
+
+<div class="secret-overlay" id="secretOverlay"></div>
+<div class="toast" id="toast">Grow mode</div>
+
+<main>
+
+<section class="hero" id="hero" data-scene="0" data-name="Foyer" data-num="00">
+  <p class="hero-eyebrow fade-up">Vertical Green Atelier · A six-alcove story</p>
+  <h1 class="hero-title">
+    <span class="line split-title" data-splitting>Six rooms.</span>
+    <span class="line split-title" data-splitting>Six kinds</span>
+    <span class="line split-title italic" data-splitting>of green.</span>
+  </h1>
+  <p class="hero-sub fade-up">Each HyGro® system rendered as a small breathing world —<br/>lit, shaded, scored, and quietly hiding a secret.</p>
+  <p class="hero-hint fade-up">scroll to enter · <span>G</span> for wind · double-click to plant · find the <span>✦</span></p>
+</section>
+
+<section class="alcove" id="a1" data-scene="1" data-name="Living Wall" data-num="I">
+  <div class="alcove-inner">
+    <div class="alcove-meta"><span class="num fade-up">I.</span><span class="product fade-up">HyGro®Wall</span></div>
+    <h2 class="alcove-title split-title" data-splitting>A forest, set <span class="italic">vertical.</span></h2>
+    <p class="alcove-body split-body" data-splitting="words">Hundreds of leaves rendered with subsurface scattering — translucent at the edges where the light passes through, swayed by a vertex-wind shader that breathes with the room.</p>
+    <p class="alcove-pull split-pull" data-splitting="words">A wall that learns to <em>exhale.</em></p>
+    <ul class="alcove-spec"><li>Plants/m²<strong>30+</strong></li><li>Care<strong>Auto-irrigated</strong></li></ul>
+    <p class="alcove-hint">✦ a quiet light is hiding in the foliage.</p>
+  </div>
+</section>
+
+<section class="alcove right" id="a2" data-scene="2" data-name="Sky Meadow" data-num="II">
+  <div class="alcove-inner">
+    <div class="alcove-meta"><span class="num fade-up">II.</span><span class="product fade-up">HyGro®Roof</span></div>
+    <h2 class="alcove-title split-title" data-splitting>Skylines, <span class="italic">blooming.</span></h2>
+    <p class="alcove-body split-body" data-splitting="words">A horizon rendered with Rayleigh/Mie atmospheric scattering. Five thousand instanced grass blades, each individually bending in a procedural wind field, beneath a sun you can move.</p>
+    <p class="alcove-pull split-pull" data-splitting="words">Above us, the world is quietly being <em>re-wilded.</em></p>
+    <ul class="alcove-spec"><li>Use<strong>Roof & terrace</strong></li><li>Benefit<strong>Cooling · biodiversity</strong></li></ul>
+    <p class="alcove-hint">✦ something is flying low.</p>
+  </div>
+</section>
+
+<section class="alcove" id="a3" data-scene="3" data-name="Moss" data-num="III">
+  <div class="alcove-inner">
+    <div class="alcove-meta"><span class="num fade-up">III.</span><span class="product fade-up">HyGro®Moss</span></div>
+    <h2 class="alcove-title split-title" data-splitting>The colour of <span class="italic">hush.</span></h2>
+    <p class="alcove-body split-body" data-splitting="words">Displaced icosahedral stones, mossed with a fresnel rim shader and bathed in volumetric god-rays. Drifting spores, dense fog, hushed dynamic range.</p>
+    <p class="alcove-pull split-pull" data-splitting="words">Some greens do not grow — they <em>remember.</em></p>
+    <ul class="alcove-spec"><li>Material<strong>Preserved moss</strong></li><li>Care<strong>None</strong></li></ul>
+    <p class="alcove-hint">✦ a stone has something to say.</p>
+  </div>
+</section>
+
+<section class="alcove right" id="a4" data-scene="4" data-name="Vitrine" data-num="IV">
+  <div class="alcove-inner">
+    <div class="alcove-meta"><span class="num fade-up">IV.</span><span class="product fade-up">HyGro®Preserve</span></div>
+    <h2 class="alcove-title split-title" data-splitting>Forever, kept <span class="italic">gently.</span></h2>
+    <p class="alcove-body split-body" data-splitting="words">Three glass domes with physically based transmission — refraction, thickness, clearcoat. Each holds a preserved plant arrangement under museum lighting and an HDR environment.</p>
+    <p class="alcove-pull split-pull" data-splitting="words">Three small <em>worlds in glass.</em></p>
+    <ul class="alcove-spec"><li>Type<strong>Preserved foliage</strong></li><li>Light<strong>Any</strong></li></ul>
+    <p class="alcove-hint">✦ one dome carries a star.</p>
+  </div>
+</section>
+
+<section class="alcove" id="a5" data-scene="5" data-name="Valley" data-num="V">
+  <div class="alcove-inner">
+    <div class="alcove-meta"><span class="num fade-up">V.</span><span class="product fade-up">HyGro®Landscape</span></div>
+    <h2 class="alcove-title split-title" data-splitting>From soil <span class="italic">to sky.</span></h2>
+    <p class="alcove-body split-body" data-splitting="words">A valley at the golden hour, painted with the same atmospheric scattering as the sky meadow — but tuned warmer, lower, slower. Layered grass, distant trees, a sun that hangs.</p>
+    <p class="alcove-pull split-pull" data-splitting="words">The valley breathes <em>warmly tonight.</em></p>
+    <ul class="alcove-spec"><li>Scale<strong>Garden · grounds</strong></li><li>Service<strong>Design to care</strong></li></ul>
+    <p class="alcove-hint">✦ a hilltop holds something.</p>
+  </div>
+</section>
+
+<section class="alcove right" id="a6" data-scene="6" data-name="Crystalline" data-num="VI">
+  <div class="alcove-inner">
+    <div class="alcove-meta"><span class="num fade-up">VI.</span><span class="product fade-up">HyGro®Artificial</span></div>
+    <h2 class="alcove-title split-title" data-splitting>Beauty without <span class="italic">thirst.</span></h2>
+    <p class="alcove-body split-body" data-splitting="words">A faceted ring of glass and chrome lifelike leaves under a studio environment map — refraction and metalness pushed to their limit. Pristine and untouchable.</p>
+    <p class="alcove-pull split-pull" data-splitting="words">Pristine, <em>perpetually.</em></p>
+    <ul class="alcove-spec"><li>Type<strong>Lifelike artificial</strong></li><li>Best for<strong>Low-light · outdoor</strong></li></ul>
+    <p class="alcove-hint">✦ the centre is humming.</p>
+  </div>
+</section>
+
+<section class="outro" id="outro" data-scene="7" data-name="Threshold" data-num="VII">
+  <p class="hero-eyebrow fade-up">vii — your wall</p>
+  <h2>
+    <span class="split-title" data-splitting>Choose a room.</span><br/>
+    <span class="italic split-title" data-splitting>Plant a story.</span>
+  </h2>
+  <p class="fade-up">Conceptual design, supply, installation, long-term care — across SG, MY, PH. From a single panel to a six-storey façade.</p>
+  <a href="mailto:hello@verticalgreen.com.sg" class="btn fade-up">Begin a project →</a>
+</section>
+
+</main>
+
+<footer>
+  <p>Vertical Green Pte Ltd — Six rooms, one promise.</p>
+  <small>Three.js r160 · ES modules · PBR · IBL · UnrealBloomPass · SMAA · ACES · WebAudio</small>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<script src="https://unpkg.com/splitting/dist/splitting.min.js"></script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { Sky } from 'three/addons/objects/Sky.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+
+Splitting();
+
+/* ========== LENIS ========== */
+const lenis = new Lenis({
+  duration: 1.5,
+  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+  smoothWheel: true,
+});
+(function raf(time){ lenis.raf(time); requestAnimationFrame(raf); })();
+const progBar = document.getElementById('progBar');
+lenis.on('scroll', ({ scroll, limit }) => {
+  if (progBar) progBar.style.width = (limit ? (scroll/limit)*100 : 0) + '%';
+});
+
+/* ========== RENDERER ========== */
+const canvas = document.getElementById('scene-canvas');
+const renderer = new THREE.WebGLRenderer({
+  canvas, antialias: false, powerPreference: 'high-performance',
+  stencil: false, depth: true,
+});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+/* PMREM */
+const pmrem = new THREE.PMREMGenerator(renderer);
+const roomEnvTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+/* ========== SCENE / CAMERA ========== */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#050a06');
+scene.fog = new THREE.FogExp2('#050a06', 0.05);
+
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth/window.innerHeight, 0.1, 200);
+camera.position.set(0, 0.4, 6);
+
+/* ========== POST ========== */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  0.55,   // strength
+  0.75,   // radius
+  0.82    // threshold
+);
+composer.addPass(bloom);
+const smaa = new SMAAPass(window.innerWidth, window.innerHeight);
+composer.addPass(smaa);
+composer.addPass(new OutputPass());
+
+/* ========== STATE ========== */
+const state = {
+  activeIndex: -1,
+  growMode: false,
+  mouseTX: 0, mouseTY: 0,
+  mouseX: 0, mouseY: 0,
+};
+window.addEventListener('mousemove', (e) => {
+  state.mouseTX = (e.clientX/window.innerWidth - 0.5) * 2;
+  state.mouseTY = (e.clientY/window.innerHeight - 0.5) * 2;
+});
+window.addEventListener('resize', () => {
+  const w = window.innerWidth, h = window.innerHeight;
+  camera.aspect = w/h; camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  composer.setSize(w, h);
+  bloom.setSize(w, h);
+  smaa.setSize(w, h);
+});
+
+/* ========== SHARED: leaf shape + material ========== */
+function makeLeafGeometry(detail = 18) {
+  const shape = new THREE.Shape();
+  // tapered ovate leaf
+  shape.moveTo(0, 0);
+  shape.bezierCurveTo(0.18, 0.12, 0.42, 0.55, 0.30, 1.05);
+  shape.bezierCurveTo(0.22, 1.45, 0.10, 1.65, 0, 1.75);
+  shape.bezierCurveTo(-0.10, 1.65, -0.22, 1.45, -0.30, 1.05);
+  shape.bezierCurveTo(-0.42, 0.55, -0.18, 0.12, 0, 0);
+  const geo = new THREE.ShapeGeometry(shape, detail);
+  // proper UVs: y = 0 at base, y = 1 at tip
+  const pos = geo.attributes.position;
+  const uv = new Float32Array(pos.count * 2);
+  for (let i = 0; i < pos.count; i++) {
+    uv[i*2]   = (pos.getX(i) + 0.5);          // ~0..1
+    uv[i*2+1] = pos.getY(i) / 1.75;            // 0..1
+  }
+  geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/* Augmented PBR with wind + subsurface scattering, via onBeforeCompile */
+function makeFoliageMaterial({
+  color = 0x88c485,
+  roughness = 0.78,
+  windStrength = 0.18,
+  sssIntensity = 0.55,
+  sssColor = 0xc7f0a8,
+  doubleSide = true,
+} = {}) {
+  const mat = new THREE.MeshStandardMaterial({
+    color, roughness, metalness: 0,
+    side: doubleSide ? THREE.DoubleSide : THREE.FrontSide,
+    envMapIntensity: 0.9,
+  });
+  mat.userData.uTime = { value: 0 };
+  mat.userData.uWind = { value: windStrength };
+  mat.userData.uSSS  = { value: sssIntensity };
+  mat.userData.uSSSColor = { value: new THREE.Color(sssColor) };
+
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime     = mat.userData.uTime;
+    shader.uniforms.uWind     = mat.userData.uWind;
+    shader.uniforms.uSSS      = mat.userData.uSSS;
+    shader.uniforms.uSSSColor = mat.userData.uSSSColor;
+
+    // ---- vertex: wind sway ----
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <common>',
+      `#include <common>
+       uniform float uTime;
+       uniform float uWind;
+       attribute float aPhase;`
+    ).replace(
+      '#include <begin_vertex>',
+      `#include <begin_vertex>
+       float bend = pow(uv.y, 1.8);
+       float p = aPhase;
+       float wx = sin(uTime * 1.6 + p) + sin(uTime * 0.9 + p*1.7) * 0.5;
+       float wz = cos(uTime * 1.3 + p*1.1) + sin(uTime * 0.7 + p*0.8) * 0.45;
+       transformed.x += wx * uWind * bend;
+       transformed.z += wz * uWind * bend * 0.7;
+       transformed.y -= bend * uWind * 0.15;`
+    );
+
+    // ---- fragment: fake SSS (translucency from camera-facing back-light) ----
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <common>',
+      `#include <common>
+       uniform float uSSS;
+       uniform vec3  uSSSColor;`
+    ).replace(
+      '#include <emissivemap_fragment>',
+      `#include <emissivemap_fragment>
+       // back-light approximation: dot(view, -normal) gives transmission feel
+       float backlit = max(0.0, dot(normalize(-vViewPosition), -normal));
+       backlit = pow(backlit, 1.7);
+       totalEmissiveRadiance += uSSSColor * backlit * uSSS;`
+    );
+  };
+
+  return mat;
+}
+
+/* helper: register a foliage material so we can tick its uTime */
+const foliageMaterials = [];
+function registerFoliage(m){ foliageMaterials.push(m); return m; }
+
+/* ========== ALCOVE BASE ========== */
+function makeAlcoveBase() {
+  return {
+    group: new THREE.Group(),
+    lights: [],
+    update: () => {},
+    secrets: [],
+    fogColor: '#06120a',
+    fogDensity: 0.05,
+    envIntensity: 0.6,
+    bloom: { strength: 0.55, radius: 0.75, threshold: 0.82 },
+    exposure: 1.0,
+    camera: { pos: [0, 0.4, 6], look: [0, 0, 0] },
+  };
+}
+
+function makeSecretOrb(text, color = 0xd4eecf) {
+  const inner = new THREE.Mesh(
+    new THREE.SphereGeometry(0.08, 16, 16),
+    new THREE.MeshBasicMaterial({ color })
+  );
+  const outer = new THREE.Mesh(
+    new THREE.SphereGeometry(0.22, 16, 16),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.18, depthWrite: false })
+  );
+  inner.add(outer);
+  inner.userData = { isSecret: true, text, phase: Math.random() * Math.PI * 2 };
+  return inner;
+}
+
+/* =====================================================
+   ALCOVE 0 — FOYER (drifting leaves)
+   ===================================================== */
+function buildFoyer() {
+  const a = makeAlcoveBase();
+  a.fogColor = '#06120a'; a.fogDensity = 0.07;
+  a.envIntensity = 0.5; a.exposure = 1.0;
+  a.bloom = { strength: 0.45, radius: 0.8, threshold: 0.85 };
+  a.camera = { pos: [0, 0.4, 7], look: [0, 0, 0] };
+
+  const geo = makeLeafGeometry(14);
+  const mat = registerFoliage(makeFoliageMaterial({
+    color: 0x6da66e, sssColor: 0xcaeba0, windStrength: 0.35, sssIntensity: 0.7,
+  }));
+
+  const N = 70;
+  const mesh = new THREE.InstancedMesh(geo, mat, N);
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  const phases = new Float32Array(N);
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < N; i++) {
+    dummy.position.set(
+      (Math.random()-0.5) * 16,
+      (Math.random()-0.5) * 12,
+      (Math.random()-0.5) * 10 - 2
+    );
+    dummy.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+    const s = 0.4 + Math.random() * 0.8;
+    dummy.scale.set(s, s, s);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+    phases[i] = Math.random() * Math.PI * 2;
+  }
+  geo.setAttribute('aPhase', new THREE.InstancedBufferAttribute(phases, 1));
+  a.group.add(mesh);
+
+  /* lights */
+  const amb = new THREE.AmbientLight(0xa6c8a8, 0.5); a.group.add(amb);
+  const dir = new THREE.DirectionalLight(0xfff0c8, 1.4);
+  dir.position.set(4, 6, 5); a.group.add(dir);
+
+  /* drift via per-instance Y over time */
+  const yOff = new Float32Array(N);
+  for (let i = 0; i < N; i++) yOff[i] = Math.random() * 10;
+  a.update = (t) => {
+    const speed = state.growMode ? 1.8 : 1.0;
+    for (let i = 0; i < N; i++) {
+      mesh.getMatrixAt(i, dummy.matrix);
+      dummy.matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
+      dummy.position.y -= 0.005 * speed;
+      if (dummy.position.y < -7) dummy.position.y = 7;
+      dummy.rotation.setFromQuaternion(dummy.quaternion);
+      dummy.rotation.x += 0.002 * speed;
+      dummy.rotation.z += 0.001 * speed;
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  };
+
+  return a;
+}
+
+/* =====================================================
+   ALCOVE 1 — LIVING WALL
+   ===================================================== */
+function buildAlcoveWall() {
+  const a = makeAlcoveBase();
+  a.fogColor = '#0c1810'; a.fogDensity = 0.04;
+  a.envIntensity = 0.85; a.exposure = 1.05;
+  a.bloom = { strength: 0.55, radius: 0.8, threshold: 0.82 };
+  a.camera = { pos: [0, 0.3, 4.6], look: [0, 0.2, -1] };
+
+  /* dark felt back */
+  const back = new THREE.Mesh(
+    new THREE.PlaneGeometry(10, 6),
+    new THREE.MeshStandardMaterial({ color: 0x14180f, roughness: 1, metalness: 0 })
+  );
+  back.position.z = -2.4;
+  back.receiveShadow = true;
+  a.group.add(back);
+
+  /* dense leaf wall — instanced */
+  const geo = makeLeafGeometry(20);
+  const matBig   = registerFoliage(makeFoliageMaterial({ color: 0x6fb573, sssColor: 0xcfeea0, windStrength: 0.12, sssIntensity: 0.7 }));
+  const matSmall = registerFoliage(makeFoliageMaterial({ color: 0x4e8a52, sssColor: 0xbbe49a, windStrength: 0.10, sssIntensity: 0.55 }));
+
+  const cols = 14, rows = 10;
+  const total = cols * rows;
+  const meshA = new THREE.InstancedMesh(geo, matBig, Math.floor(total*0.55));
+  const meshB = new THREE.InstancedMesh(geo, matSmall, total - meshA.count);
+  meshA.castShadow = meshB.castShadow = true;
+  meshA.receiveShadow = meshB.receiveShadow = true;
+
+  const phasesA = new Float32Array(meshA.count);
+  const phasesB = new Float32Array(meshB.count);
+  const dummy = new THREE.Object3D();
+  let ai = 0, bi = 0;
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const px = (x - cols/2 + 0.5) * 0.36 + (Math.random()-0.5)*0.08;
+      const py = (y - rows/2 + 0.5) * 0.42 + (Math.random()-0.5)*0.08;
+      const pz = -1.6 + Math.random() * 1.0;
+      dummy.position.set(px, py, pz);
+      dummy.rotation.set(
+        (Math.random()-0.5) * 0.6,
+        (Math.random()-0.5) * 1.2,
+        (Math.random()-0.5) * 0.6
+      );
+      const s = 0.35 + Math.random() * 0.35;
+      dummy.scale.set(s, s, s);
+      dummy.updateMatrix();
+      if (Math.random() < 0.55 && ai < meshA.count) {
+        meshA.setMatrixAt(ai, dummy.matrix);
+        phasesA[ai] = Math.random() * Math.PI * 2;
+        ai++;
+      } else if (bi < meshB.count) {
+        meshB.setMatrixAt(bi, dummy.matrix);
+        phasesB[bi] = Math.random() * Math.PI * 2;
+        bi++;
+      }
+    }
+  }
+  // We need geo to carry aPhase, but two meshes share the same geo. Use a separate geometry clone per mesh.
+  const geoA = geo.clone();
+  geoA.setAttribute('aPhase', new THREE.InstancedBufferAttribute(phasesA, 1));
+  meshA.geometry = geoA;
+  const geoB = geo.clone();
+  geoB.setAttribute('aPhase', new THREE.InstancedBufferAttribute(phasesB, 1));
+  meshB.geometry = geoB;
+
+  a.group.add(meshA); a.group.add(meshB);
+
+  /* lights — cinematic key + cool rim */
+  const key = new THREE.DirectionalLight(0xffd9a0, 2.2);
+  key.position.set(-4, 5, 4);
+  key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.camera.near = 0.5; key.shadow.camera.far = 20;
+  key.shadow.camera.left = -4; key.shadow.camera.right = 4;
+  key.shadow.camera.top = 4; key.shadow.camera.bottom = -4;
+  key.shadow.bias = -0.0002;
+  a.group.add(key);
+  const rim = new THREE.DirectionalLight(0x88c4f0, 0.6);
+  rim.position.set(3, -1, -2);
+  a.group.add(rim);
+  a.group.add(new THREE.AmbientLight(0x4a6a52, 0.3));
+
+  /* secret orb tucked into the leaves */
+  const orb = makeSecretOrb('Plant a wall. Plant a feeling. Plant a future.');
+  orb.position.set(1.6, -1.4, -0.4);
+  a.group.add(orb);
+  a.secrets.push(orb);
+
+  a.update = (t) => {
+    orb.scale.setScalar(1 + Math.sin(t * 1.8 + orb.userData.phase) * 0.2);
+  };
+
+  return a;
+}
+
+/* =====================================================
+   ALCOVE 2 — SKY MEADOW (Sky + instanced grass)
+   ===================================================== */
+function buildAlcoveRoof() {
+  const a = makeAlcoveBase();
+  a.fogColor = '#c8d4dc'; a.fogDensity = 0.015;
+  a.envIntensity = 1.0; a.exposure = 0.95;
+  a.bloom = { strength: 0.7, radius: 0.85, threshold: 0.78 };
+  a.camera = { pos: [0, 0.9, 5.2], look: [0, 0.6, -5] };
+
+  /* SKY */
+  const sky = new Sky();
+  sky.scale.setScalar(450);
+  const sunPos = new THREE.Vector3();
+  const phi = THREE.MathUtils.degToRad(78);
+  const theta = THREE.MathUtils.degToRad(180);
+  sunPos.setFromSphericalCoords(1, phi, theta);
+  sky.material.uniforms.sunPosition.value.copy(sunPos);
+  sky.material.uniforms.turbidity.value = 4;
+  sky.material.uniforms.rayleigh.value = 2.2;
+  sky.material.uniforms.mieCoefficient.value = 0.005;
+  sky.material.uniforms.mieDirectionalG.value = 0.78;
+  a.group.add(sky);
+
+  /* sun directional light */
+  const sun = new THREE.DirectionalLight(0xfde6b8, 2.2);
+  sun.position.copy(sunPos).multiplyScalar(10);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.near = 0.5; sun.shadow.camera.far = 40;
+  sun.shadow.camera.left = -12; sun.shadow.camera.right = 12;
+  sun.shadow.camera.top = 12; sun.shadow.camera.bottom = -12;
+  sun.shadow.bias = -0.0003;
+  a.group.add(sun);
+  a.group.add(new THREE.HemisphereLight(0xb8d8e8, 0.5));
+
+  /* ground (displaced) */
+  const groundGeo = new THREE.PlaneGeometry(60, 60, 80, 80);
+  const gpos = groundGeo.attributes.position;
+  for (let i = 0; i < gpos.count; i++) {
+    const x = gpos.getX(i), y = gpos.getY(i);
+    gpos.setZ(i, Math.sin(x*0.18)*0.6 + Math.cos(y*0.22)*0.55 + (Math.random()-0.5)*0.25);
+  }
+  groundGeo.computeVertexNormals();
+  const groundMat = new THREE.MeshStandardMaterial({
+    color: 0x4d7a3e, roughness: 0.95, metalness: 0, flatShading: true,
+  });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI/2;
+  ground.position.y = -1.4;
+  ground.receiveShadow = true;
+  a.group.add(ground);
+
+  /* GRASS BLADES — instanced triangle blades with wind */
+  const bladeShape = new THREE.Shape();
+  bladeShape.moveTo(-0.018, 0);
+  bladeShape.lineTo(0.018, 0);
+  bladeShape.lineTo(0.004, 0.55);
+  bladeShape.lineTo(-0.004, 0.55);
+  bladeShape.lineTo(-0.018, 0);
+  const bladeGeo = new THREE.ShapeGeometry(bladeShape, 5);
+  // ensure UV.y from 0 (root) to 1 (tip)
+  const bp = bladeGeo.attributes.position;
+  const buv = new Float32Array(bp.count*2);
+  for (let i = 0; i < bp.count; i++) {
+    buv[i*2] = bp.getX(i);
+    buv[i*2+1] = bp.getY(i) / 0.55;
+  }
+  bladeGeo.setAttribute('uv', new THREE.BufferAttribute(buv, 2));
+  bladeGeo.computeVertexNormals();
+
+  const grassMat = registerFoliage(makeFoliageMaterial({
+    color: 0x6ea24a, sssColor: 0xd4e89a, windStrength: 0.20, sssIntensity: 0.6, doubleSide: true,
+  }));
+  const COUNT = 5000;
+  const grass = new THREE.InstancedMesh(bladeGeo, grassMat, COUNT);
+  const phases = new Float32Array(COUNT);
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < COUNT; i++) {
+    const r = Math.sqrt(Math.random()) * 14;
+    const a2 = Math.random() * Math.PI * 2;
+    const x = Math.cos(a2) * r;
+    const z = Math.sin(a2) * r - 2;
+    // sample ground height
+    const gy = Math.sin(x*0.18)*0.6 + Math.cos(z*0.22)*0.55 - 1.4;
+    dummy.position.set(x, gy, z);
+    dummy.rotation.y = Math.random() * Math.PI * 2;
+    const s = 0.7 + Math.random() * 1.0;
+    dummy.scale.set(s, s, s);
+    dummy.updateMatrix();
+    grass.setMatrixAt(i, dummy.matrix);
+    phases[i] = Math.random() * Math.PI * 2;
+  }
+  const grassGeo = bladeGeo.clone();
+  grassGeo.setAttribute('aPhase', new THREE.InstancedBufferAttribute(phases, 1));
+  grass.geometry = grassGeo;
+  a.group.add(grass);
+
+  /* distant tree silhouettes (low-poly cones) */
+  const treeMat = new THREE.MeshStandardMaterial({ color: 0x2e4a32, roughness: 1 });
+  for (let i = 0; i < 14; i++) {
+    const t = new THREE.Mesh(new THREE.ConeGeometry(0.5 + Math.random()*0.5, 2 + Math.random()*1.4, 6), treeMat);
+    const a2 = (i / 14) * Math.PI * 2 + Math.random() * 0.2;
+    t.position.set(Math.cos(a2) * 15, -0.2, Math.sin(a2) * 15 - 4);
+    t.castShadow = true;
+    a.group.add(t);
+  }
+
+  /* secret: a flying bird (a small dark plane) */
+  const orb = makeSecretOrb('Above us, the world is being re-wilded — one rooftop at a time.', 0xffffff);
+  orb.position.set(-6, 2.2, -5);
+  a.group.add(orb);
+  a.secrets.push(orb);
+
+  a.update = (t) => {
+    orb.position.x += 0.02 * (state.growMode ? 1.8 : 1.0);
+    if (orb.position.x > 8) orb.position.x = -8;
+    orb.position.y = 2.2 + Math.sin(t*1.5) * 0.25;
+  };
+
+  return a;
+}
+
+/* =====================================================
+   ALCOVE 3 — MOSS (mossy stones + god-rays + spores)
+   ===================================================== */
+function buildAlcoveMoss() {
+  const a = makeAlcoveBase();
+  a.fogColor = '#0e2418'; a.fogDensity = 0.15;
+  a.envIntensity = 0.4; a.exposure = 1.1;
+  a.bloom = { strength: 0.8, radius: 0.9, threshold: 0.7 };
+  a.camera = { pos: [0, 0.2, 3.6], look: [0, -0.2, -1] };
+
+  /* moss-covered stones */
+  const stones = [];
+  for (let i = 0; i < 7; i++) {
+    const geo = new THREE.IcosahedronGeometry(0.7 + Math.random()*0.5, 2);
+    const pos = geo.attributes.position;
+    for (let j = 0; j < pos.count; j++) {
+      pos.setXYZ(j,
+        pos.getX(j) * (1 + (Math.random()-0.5)*0.25),
+        pos.getY(j) * (1 + (Math.random()-0.5)*0.25),
+        pos.getZ(j) * (1 + (Math.random()-0.5)*0.25)
+      );
+    }
+    geo.computeVertexNormals();
+    const mat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color().setHSL(0.28 + Math.random()*0.05, 0.45, 0.22 + Math.random()*0.12),
+      roughness: 0.95, metalness: 0, flatShading: true,
+    });
+    const s = new THREE.Mesh(geo, mat);
+    s.position.set(
+      (i%3 - 1) * 1.5 + (Math.random()-0.5)*0.4,
+      -0.9 + Math.floor(i/3) * 0.7 + (Math.random()-0.5)*0.3,
+      -1.6 + (Math.random()-0.5)*1.0
+    );
+    s.castShadow = true; s.receiveShadow = true;
+    stones.push(s);
+    a.group.add(s);
+  }
+
+  /* god-ray cone */
+  const ray = new THREE.Mesh(
+    new THREE.ConeGeometry(2.4, 6, 24, 1, true),
+    new THREE.MeshBasicMaterial({
+      color: 0xd2eecc, transparent: true, opacity: 0.10,
+      blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+      depthWrite: false,
+    })
+  );
+  ray.position.set(-0.5, 2.5, -1);
+  ray.rotation.z = 0.25;
+  a.group.add(ray);
+  const ray2 = ray.clone();
+  ray2.position.set(0.8, 2.5, -1.2);
+  ray2.rotation.z = -0.2;
+  a.group.add(ray2);
+
+  /* spores */
+  const sporeGeo = new THREE.BufferGeometry();
+  const N = 220;
+  const sp = new Float32Array(N*3);
+  for (let i = 0; i < N; i++) {
+    sp[i*3]   = (Math.random()-0.5)*7;
+    sp[i*3+1] = (Math.random()-0.5)*4;
+    sp[i*3+2] = (Math.random()-0.5)*3 - 1;
+  }
+  sporeGeo.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+  const spores = new THREE.Points(sporeGeo, new THREE.PointsMaterial({
+    color: 0xeaffe2, size: 0.045, transparent: true, opacity: 0.75,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  }));
+  a.group.add(spores);
+
+  /* lights */
+  const top = new THREE.SpotLight(0xeaffe2, 6, 14, Math.PI/5, 0.55, 1.2);
+  top.position.set(-0.5, 5, 1);
+  top.target.position.set(0, -1, -1);
+  top.castShadow = true;
+  top.shadow.mapSize.set(1024, 1024);
+  top.shadow.bias = -0.0003;
+  a.group.add(top); a.group.add(top.target);
+  a.group.add(new THREE.AmbientLight(0x325040, 0.4));
+
+  /* secret orb */
+  const orb = makeSecretOrb('The forest is older than every word we have used to name it.', 0xcaf5b4);
+  orb.position.set(-1.3, -0.5, -1.0);
+  a.group.add(orb);
+  a.secrets.push(orb);
+
+  a.update = (t) => {
+    const w = state.growMode ? 1.7 : 1.0;
+    stones.forEach((s, i) => { s.rotation.y += 0.0008 * w * (i%2 ? 1 : -1); });
+    const arr = spores.geometry.attributes.position.array;
+    for (let i = 0; i < N; i++) {
+      arr[i*3+1] += 0.002 * w;
+      arr[i*3]   += Math.sin(t*0.4 + i) * 0.0008;
+      if (arr[i*3+1] > 3) arr[i*3+1] = -3;
+    }
+    spores.geometry.attributes.position.needsUpdate = true;
+    ray.material.opacity  = 0.08 + Math.sin(t*0.4) * 0.03;
+    ray2.material.opacity = 0.08 + Math.cos(t*0.5) * 0.03;
+  };
+
+  return a;
+}
+
+/* =====================================================
+   ALCOVE 4 — VITRINE (glass domes, PBR transmission)
+   ===================================================== */
+function buildAlcoveVitrine() {
+  const a = makeAlcoveBase();
+  a.fogColor = '#0a0a10'; a.fogDensity = 0.04;
+  a.envIntensity = 1.4; a.exposure = 1.05;
+  a.bloom = { strength: 0.5, radius: 0.8, threshold: 0.85 };
+  a.camera = { pos: [0, 0.2, 4.3], look: [0, -0.1, -1] };
+
+  /* dark museum floor */
+  const floor = new THREE.Mesh(
+    new THREE.CircleGeometry(8, 32),
+    new THREE.MeshStandardMaterial({ color: 0x0c0c14, roughness: 0.7, metalness: 0.2 })
+  );
+  floor.rotation.x = -Math.PI/2;
+  floor.position.y = -1.05;
+  floor.receiveShadow = true;
+  a.group.add(floor);
+
+  const positions = [[-2.2, 0, -1], [0, 0.2, -1.2], [2.2, -0.15, -1]];
+  positions.forEach((p, i) => {
+    /* dome glass */
+    const dome = new THREE.Mesh(
+      new THREE.SphereGeometry(0.85, 36, 28, 0, Math.PI*2, 0, Math.PI*0.62),
+      new THREE.MeshPhysicalMaterial({
+        color: 0xf4faf4,
+        roughness: 0.05, metalness: 0,
+        transmission: 0.95, ior: 1.45,
+        thickness: 0.4, clearcoat: 0.8, clearcoatRoughness: 0.1,
+        envMapIntensity: 1.4,
+      })
+    );
+    dome.position.set(...p);
+    a.group.add(dome);
+
+    /* base plinth */
+    const plinth = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.95, 1.05, 0.1, 32),
+      new THREE.MeshStandardMaterial({ color: 0x1a1a20, roughness: 0.5, metalness: 0.7 })
+    );
+    plinth.position.set(p[0], p[1] - 1.0, p[2]);
+    plinth.castShadow = true; plinth.receiveShadow = true;
+    a.group.add(plinth);
+
+    /* preserved plant inside: leaf cluster */
+    const plant = new THREE.Group();
+    plant.position.set(p[0], p[1] - 0.7, p[2]);
+    const leafGeo = makeLeafGeometry(14);
+    const leafMat = registerFoliage(makeFoliageMaterial({
+      color: new THREE.Color().setHSL(0.28 + i*0.02, 0.55, 0.4).getHex(),
+      sssColor: 0xd6f0a8, windStrength: 0.0, sssIntensity: 0.6,
+    }));
+    const leafCount = 22 + Math.floor(Math.random()*8);
+    const leafMesh = new THREE.InstancedMesh(leafGeo, leafMat, leafCount);
+    leafMesh.castShadow = true;
+    const phases = new Float32Array(leafCount);
+    const d = new THREE.Object3D();
+    for (let k = 0; k < leafCount; k++) {
+      const ang = Math.random() * Math.PI * 2;
+      const rad = 0.0 + Math.random() * 0.05;
+      d.position.set(Math.cos(ang)*rad, Math.random()*0.05, Math.sin(ang)*rad);
+      d.rotation.set(
+        -Math.PI*0.45 + (Math.random()-0.5)*0.6,
+        ang,
+        (Math.random()-0.5)*0.4
+      );
+      const s = 0.18 + Math.random()*0.12;
+      d.scale.set(s, s, s);
+      d.updateMatrix();
+      leafMesh.setMatrixAt(k, d.matrix);
+      phases[k] = Math.random()*Math.PI*2;
+    }
+    const lg = leafGeo.clone();
+    lg.setAttribute('aPhase', new THREE.InstancedBufferAttribute(phases, 1));
+    leafMesh.geometry = lg;
+    plant.add(leafMesh);
+    a.group.add(plant);
+  });
+
+  /* dramatic side spot + soft fill */
+  const spot = new THREE.SpotLight(0xfdd6a6, 9, 16, Math.PI/5, 0.5, 1.2);
+  spot.position.set(-5, 5, 4);
+  spot.target.position.set(0, 0, -1);
+  spot.castShadow = true;
+  spot.shadow.mapSize.set(1024, 1024);
+  spot.shadow.bias = -0.0003;
+  a.group.add(spot); a.group.add(spot.target);
+  a.group.add(new THREE.AmbientLight(0x222230, 0.3));
+  const rim = new THREE.PointLight(0x88c4f0, 1.4, 10);
+  rim.position.set(4, -0.2, 2);
+  a.group.add(rim);
+
+  /* secret inside middle dome */
+  const orb = makeSecretOrb('Preservation is a quiet, generous lie — and a true kindness.', 0xfdd6a6);
+  orb.position.set(0, 0.4, -1.2);
+  a.group.add(orb);
+  a.secrets.push(orb);
+
+  return a;
+}
+
+/* =====================================================
+   ALCOVE 5 — VALLEY (Sky at golden hour + grass)
+   ===================================================== */
+function buildAlcoveValley() {
+  const a = makeAlcoveBase();
+  a.fogColor = '#caa17a'; a.fogDensity = 0.025;
+  a.envIntensity = 1.0; a.exposure = 0.95;
+  a.bloom = { strength: 0.85, radius: 0.9, threshold: 0.7 };
+  a.camera = { pos: [0, 0.6, 4.8], look: [0, 0.2, -5] };
+
+  const sky = new Sky();
+  sky.scale.setScalar(450);
+  const sunPos = new THREE.Vector3();
+  const phi = THREE.MathUtils.degToRad(87.5);
+  const theta = THREE.MathUtils.degToRad(195);
+  sunPos.setFromSphericalCoords(1, phi, theta);
+  sky.material.uniforms.sunPosition.value.copy(sunPos);
+  sky.material.uniforms.turbidity.value = 8;
+  sky.material.uniforms.rayleigh.value = 3.5;
+  sky.material.uniforms.mieCoefficient.value = 0.012;
+  sky.material.uniforms.mieDirectionalG.value = 0.85;
+  a.group.add(sky);
+
+  const sun = new THREE.DirectionalLight(0xffb070, 2.6);
+  sun.position.copy(sunPos).multiplyScalar(10);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.near = 0.5; sun.shadow.camera.far = 40;
+  sun.shadow.camera.left = -12; sun.shadow.camera.right = 12;
+  sun.shadow.camera.top = 12; sun.shadow.camera.bottom = -12;
+  a.group.add(sun);
+  a.group.add(new THREE.HemisphereLight(0xfde0c0, 0x2a1a14, 0.6));
+
+  /* layered terrain — three displaced plane "hills" */
+  const hillColors = [0x9ab470, 0x6a9558, 0x3f6c44];
+  for (let i = 0; i < 3; i++) {
+    const geo = new THREE.PlaneGeometry(60, 8, 80, 1);
+    const pos = geo.attributes.position;
+    for (let j = 0; j < pos.count; j++) {
+      const x = pos.getX(j);
+      pos.setY(j, pos.getY(j) + Math.sin(x*0.18 + i*1.7)*1.4 + Math.sin(x*0.55 + i*0.7)*0.55);
+    }
+    geo.computeVertexNormals();
+    const mat = new THREE.MeshStandardMaterial({ color: hillColors[i], roughness: 1, flatShading: true });
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(0, -2.8 + i*0.9, -3 - i*4);
+    m.receiveShadow = true;
+    a.group.add(m);
+  }
+
+  /* foreground grass tufts */
+  const bladeShape = new THREE.Shape();
+  bladeShape.moveTo(-0.025, 0);
+  bladeShape.lineTo(0.025, 0);
+  bladeShape.lineTo(0.005, 0.7);
+  bladeShape.lineTo(-0.005, 0.7);
+  bladeShape.lineTo(-0.025, 0);
+  const bladeGeo = new THREE.ShapeGeometry(bladeShape, 5);
+  const bp = bladeGeo.attributes.position;
+  const buv = new Float32Array(bp.count*2);
+  for (let i = 0; i < bp.count; i++) {
+    buv[i*2] = bp.getX(i);
+    buv[i*2+1] = bp.getY(i) / 0.7;
+  }
+  bladeGeo.setAttribute('uv', new THREE.BufferAttribute(buv, 2));
+  bladeGeo.computeVertexNormals();
+  const grassMat = registerFoliage(makeFoliageMaterial({
+    color: 0x9ab470, sssColor: 0xf3d999, windStrength: 0.30, sssIntensity: 0.7,
+  }));
+  const COUNT = 2400;
+  const grass = new THREE.InstancedMesh(bladeGeo, grassMat, COUNT);
+  const phases = new Float32Array(COUNT);
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < COUNT; i++) {
+    const x = (Math.random()-0.5) * 16;
+    const z = (Math.random() * -10) + 1;
+    dummy.position.set(x, -2.2, z);
+    dummy.rotation.y = Math.random() * Math.PI * 2;
+    const s = 0.8 + Math.random()*0.8;
+    dummy.scale.set(s, s, s);
+    dummy.updateMatrix();
+    grass.setMatrixAt(i, dummy.matrix);
+    phases[i] = Math.random() * Math.PI * 2;
+  }
+  const gg = bladeGeo.clone();
+  gg.setAttribute('aPhase', new THREE.InstancedBufferAttribute(phases, 1));
+  grass.geometry = gg;
+  a.group.add(grass);
+
+  /* secret on a hilltop */
+  const orb = makeSecretOrb('Every landscape is a love letter that takes a century to write.', 0xfae29a);
+  orb.position.set(-2.6, -0.6, -5.2);
+  a.group.add(orb);
+  a.secrets.push(orb);
+
+  return a;
+}
+
+/* =====================================================
+   ALCOVE 6 — CRYSTALLINE (metal + glass leaves)
+   ===================================================== */
+function buildAlcoveCrystalline() {
+  const a = makeAlcoveBase();
+  a.fogColor = '#0c1018'; a.fogDensity = 0.035;
+  a.envIntensity = 1.6; a.exposure = 1.0;
+  a.bloom = { strength: 0.6, radius: 0.9, threshold: 0.78 };
+  a.camera = { pos: [0, 0.2, 5.5], look: [0, 0, 0] };
+
+  const ring = new THREE.Group();
+  const leafGeo = makeLeafGeometry(20);
+
+  /* outer chrome leaves */
+  const chrome = new THREE.MeshStandardMaterial({
+    color: 0xeef2f6, roughness: 0.18, metalness: 0.92, envMapIntensity: 1.6,
+    side: THREE.DoubleSide,
+  });
+  /* inner glass leaves */
+  const glass = new THREE.MeshPhysicalMaterial({
+    color: 0xc4e4d0, roughness: 0.08, metalness: 0,
+    transmission: 0.85, ior: 1.5, thickness: 0.2, clearcoat: 1.0,
+    envMapIntensity: 1.6, side: THREE.DoubleSide,
+  });
+
+  const outer = 12;
+  for (let i = 0; i < outer; i++) {
+    const ang = (i/outer) * Math.PI * 2;
+    const m = new THREE.Mesh(leafGeo, chrome);
+    m.position.set(Math.cos(ang)*2.0, Math.sin(ang)*2.0, 0);
+    m.rotation.z = ang + Math.PI/2;
+    m.scale.set(0.9, 0.9, 0.9);
+    m.castShadow = true;
+    ring.add(m);
+  }
+  const ring2 = new THREE.Group();
+  const inner = 8;
+  for (let i = 0; i < inner; i++) {
+    const ang = (i/inner) * Math.PI * 2 + Math.PI/8;
+    const m = new THREE.Mesh(leafGeo, glass);
+    m.position.set(Math.cos(ang)*1.1, Math.sin(ang)*1.1, 0.4);
+    m.rotation.z = ang + Math.PI/2;
+    m.scale.set(0.55, 0.55, 0.55);
+    ring2.add(m);
+  }
+  a.group.add(ring); a.group.add(ring2);
+
+  /* center pillar */
+  const pillar = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.05, 4, 16),
+    new THREE.MeshStandardMaterial({ color: 0xf5f7f8, roughness: 0.1, metalness: 0.95 })
+  );
+  pillar.rotation.x = Math.PI/2;
+  a.group.add(pillar);
+
+  /* small particles */
+  const pgeo = new THREE.BufferGeometry();
+  const N = 120;
+  const arr = new Float32Array(N*3);
+  for (let i = 0; i < N; i++) {
+    arr[i*3]   = (Math.random()-0.5)*5;
+    arr[i*3+1] = (Math.random()-0.5)*4;
+    arr[i*3+2] = (Math.random()-0.5)*3;
+  }
+  pgeo.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+  const pts = new THREE.Points(pgeo, new THREE.PointsMaterial({
+    color: 0xc9e7d3, size: 0.04, transparent: true, opacity: 0.7,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  }));
+  a.group.add(pts);
+
+  /* lights */
+  const k = new THREE.DirectionalLight(0xe6f0ff, 1.4); k.position.set(3, 4, 5); k.castShadow = true; a.group.add(k);
+  const r = new THREE.PointLight(0x88e0a8, 1.5, 14); r.position.set(-3, -2, 3); a.group.add(r);
+  a.group.add(new THREE.AmbientLight(0x35404a, 0.3));
+
+  /* secret at centre */
+  const orb = makeSecretOrb('The truest illusion is one that gives us back our love of the real.', 0xc9e7d3);
+  orb.position.set(0, 0, 0.6);
+  a.group.add(orb);
+  a.secrets.push(orb);
+
+  a.update = (t) => {
+    const w = state.growMode ? 1.6 : 1.0;
+    ring.rotation.z  =  t * 0.10 * w;
+    ring2.rotation.z = -t * 0.13 * w;
+    ring.children.forEach((m, i) => { m.rotation.y = t * 0.3 + i * 0.2; });
+    ring2.children.forEach((m, i) => { m.rotation.x = t * 0.4 + i * 0.3; });
+    const ar = pts.geometry.attributes.position.array;
+    for (let i = 0; i < N; i++) {
+      ar[i*3+1] += 0.002 * w;
+      if (ar[i*3+1] > 2.5) ar[i*3+1] = -2.5;
+    }
+    pts.geometry.attributes.position.needsUpdate = true;
+  };
+
+  return a;
+}
+
+/* =====================================================
+   REGISTRY + SWITCHING
+   ===================================================== */
+const alcoves = [
+  buildFoyer(),            // 0
+  buildAlcoveWall(),       // 1
+  buildAlcoveRoof(),       // 2
+  buildAlcoveMoss(),       // 3
+  buildAlcoveVitrine(),    // 4
+  buildAlcoveValley(),     // 5
+  buildAlcoveCrystalline(),// 6
+  buildFoyer(),            // 7 (outro reuses foyer)
+];
+alcoves.forEach((a) => { a.group.visible = false; scene.add(a.group); });
+
+const cameraTarget = { x: 0, y: 0.4, z: 6, lx: 0, ly: 0, lz: 0 };
+const fogTarget = { color: new THREE.Color('#06120a'), density: 0.07 };
+const expTarget = { value: 1.0 };
+const envTarget = { value: 0.6 };
+const bloomTarget = { strength: 0.55, radius: 0.75, threshold: 0.82 };
+
+function setActiveAlcove(i) {
+  if (i === state.activeIndex) return;
+  if (state.activeIndex >= 0 && alcoves[state.activeIndex]) {
+    const prev = alcoves[state.activeIndex];
+    gsap.to(prev.group.position, { y: -1.2, duration: 0.9, ease: 'power2.in',
+      onComplete: () => { prev.group.visible = false; prev.group.position.y = 0; } });
+    gsap.to(prev.group.scale, { x: 0.95, y: 0.95, z: 0.95, duration: 0.9, ease: 'power2.in' });
+  }
+  state.activeIndex = i;
+  const cur = alcoves[i]; if (!cur) return;
+  cur.group.visible = true;
+  cur.group.position.set(0, 1.2, 0);
+  cur.group.scale.set(0.95, 0.95, 0.95);
+  gsap.to(cur.group.position, { y: 0, duration: 1.4, ease: 'power3.out' });
+  gsap.to(cur.group.scale, { x: 1, y: 1, z: 1, duration: 1.4, ease: 'power3.out' });
+
+  /* env intensity per scene */
+  gsap.to(envTarget, { value: cur.envIntensity ?? 0.6, duration: 1.6, ease: 'sine.inOut' });
+  gsap.to(expTarget, { value: cur.exposure ?? 1.0, duration: 1.6, ease: 'sine.inOut' });
+
+  /* bloom */
+  gsap.to(bloomTarget, {
+    strength: cur.bloom.strength, radius: cur.bloom.radius, threshold: cur.bloom.threshold,
+    duration: 1.4, ease: 'sine.inOut',
+  });
+
+  /* camera */
+  if (cur.camera) {
+    gsap.to(cameraTarget, {
+      x: cur.camera.pos[0], y: cur.camera.pos[1], z: cur.camera.pos[2],
+      lx: cur.camera.look[0], ly: cur.camera.look[1], lz: cur.camera.look[2],
+      duration: 1.7, ease: 'power3.inOut',
+    });
+  }
+
+  /* fog */
+  const c = new THREE.Color(cur.fogColor);
+  gsap.to(fogTarget.color, { r: c.r, g: c.g, b: c.b, duration: 1.6, ease: 'sine.inOut' });
+  gsap.to(fogTarget, { density: cur.fogDensity, duration: 1.6, ease: 'sine.inOut' });
+
+  Audio.activate(i);
+}
+
+/* set env on all foliage / standard materials */
+function applyEnvironmentToScene() {
+  scene.environment = roomEnvTex;
+  scene.traverse((o) => {
+    if (o.isMesh && o.material) {
+      const mats = Array.isArray(o.material) ? o.material : [o.material];
+      mats.forEach((m) => {
+        if ('envMapIntensity' in m) {
+          // base intensity is set per-material; we multiply by envTarget at render
+        }
+      });
+    }
+  });
+}
+
+/* ========== RENDER LOOP ========== */
+const clock = new THREE.Clock();
+function tick() {
+  const t = clock.getElapsedTime();
+
+  /* smooth mouse */
+  state.mouseX += (state.mouseTX - state.mouseX) * 0.05;
+  state.mouseY += (state.mouseTY - state.mouseY) * 0.05;
+
+  /* camera with subtle parallax + breath */
+  const breath = Math.sin(t * 0.4) * 0.05;
+  camera.position.x += (cameraTarget.x + state.mouseX * 0.3 - camera.position.x) * 0.06;
+  camera.position.y += (cameraTarget.y + breath + (-state.mouseY) * 0.2 - camera.position.y) * 0.06;
+  camera.position.z += (cameraTarget.z - camera.position.z) * 0.06;
+  camera.lookAt(cameraTarget.lx, cameraTarget.ly, cameraTarget.lz);
+
+  /* fog */
+  scene.fog.color.copy(fogTarget.color);
+  scene.fog.density = fogTarget.density;
+  scene.background = fogTarget.color;
+
+  /* tone exposure */
+  renderer.toneMappingExposure = expTarget.value;
+
+  /* bloom */
+  bloom.strength = bloomTarget.strength;
+  bloom.radius = bloomTarget.radius;
+  bloom.threshold = bloomTarget.threshold;
+
+  /* update foliage shader uTime */
+  for (let i = 0; i < foliageMaterials.length; i++) {
+    foliageMaterials[i].userData.uTime.value = t;
+    foliageMaterials[i].userData.uWind.value =
+      (state.growMode ? 2.0 : 1.0) * (foliageMaterials[i].userData.uWindBase ?? foliageMaterials[i].userData.uWind.value);
+  }
+
+  /* per-alcove update */
+  const cur = alcoves[state.activeIndex];
+  if (cur && cur.update) cur.update(t);
+
+  composer.render();
+  requestAnimationFrame(tick);
+}
+
+/* ========== INIT ========== */
+applyEnvironmentToScene();
+// store the BASE wind so growMode can scale it correctly
+foliageMaterials.forEach(m => { m.userData.uWindBase = m.userData.uWind.value; });
+tick();
+
+/* ========== GSAP / SCROLL ========== */
+gsap.registerPlugin(ScrollTrigger);
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add((t) => lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+
+gsap.to('.hero .split-title .char', {
+  opacity: 1, y: 0, rotateX: 0, filter: 'blur(0px)',
+  duration: 1.4, ease: 'expo.out', stagger: 0.04, delay: 0.5,
+});
+gsap.to('.hero .fade-up', {
+  opacity: 1, y: 0, duration: 1.3, ease: 'power3.out',
+  stagger: 0.16, delay: 1.4,
+});
+
+document.querySelectorAll('section').forEach((sec) => {
+  sec.querySelectorAll('.split-title').forEach((el) => {
+    const chars = el.querySelectorAll('.char'); if (!chars.length) return;
+    gsap.to(chars, {
+      opacity: 1, y: 0, rotateX: 0, filter: 'blur(0px)',
+      duration: 1.3, ease: 'expo.out', stagger: 0.025,
+      scrollTrigger: { trigger: el, start: 'top 80%' },
+    });
+  });
+  sec.querySelectorAll('.split-body, .split-pull').forEach((el) => {
+    const words = el.querySelectorAll('.word'); if (!words.length) return;
+    gsap.to(words, {
+      opacity: 1, y: 0, filter: 'blur(0px)',
+      duration: 1.0, ease: 'power3.out', stagger: 0.022,
+      scrollTrigger: { trigger: el, start: 'top 86%' },
+    });
+  });
+  sec.querySelectorAll('.fade-up').forEach((el) => {
+    gsap.to(el, {
+      opacity: 1, y: 0, duration: 1.2, ease: 'power3.out',
+      scrollTrigger: { trigger: el, start: 'top 88%' },
+    });
+  });
+});
+
+const sceneSections = document.querySelectorAll('[data-scene]');
+sceneSections.forEach((sec) => {
+  const idx = parseInt(sec.dataset.scene, 10);
+  ScrollTrigger.create({
+    trigger: sec, start: 'top 55%', end: 'bottom 45%',
+    onEnter: () => setActiveAlcove(idx),
+    onEnterBack: () => setActiveAlcove(idx),
+  });
+});
+
+const npNum = document.getElementById('npNum');
+const npName = document.getElementById('npName');
+const railBtns = document.querySelectorAll('.alcove-rail button');
+sceneSections.forEach((sec, i) => {
+  ScrollTrigger.create({
+    trigger: sec, start: 'top 50%', end: 'bottom 50%',
+    onToggle: (self) => {
+      if (self.isActive) {
+        npNum.textContent = sec.dataset.num || '—';
+        npName.textContent = sec.dataset.name || '';
+        railBtns.forEach((b) => b.classList.remove('active'));
+        if (railBtns[i]) railBtns[i].classList.add('active');
+      }
+    },
+  });
+});
+railBtns.forEach((b) => {
+  b.addEventListener('click', () => {
+    const t = document.querySelector(b.dataset.target);
+    if (t) lenis.scrollTo(t, { duration: 1.6 });
+  });
+});
+
+/* ========== HIDDEN GESTURES ========== */
+const raycaster = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+const secretEl = document.getElementById('secretOverlay');
+let secretHideT = null;
+function showSecret(text) {
+  secretEl.textContent = text;
+  secretEl.classList.add('show');
+  if (secretHideT) clearTimeout(secretHideT);
+  secretHideT = setTimeout(() => secretEl.classList.remove('show'), 4400);
+}
+
+window.addEventListener('click', (e) => {
+  ndc.x = (e.clientX/window.innerWidth)*2 - 1;
+  ndc.y = -(e.clientY/window.innerHeight)*2 + 1;
+  raycaster.setFromCamera(ndc, camera);
+  const cur = alcoves[state.activeIndex];
+  if (!cur || !cur.secrets || !cur.secrets.length) return;
+  const hits = raycaster.intersectObjects(cur.secrets, true);
+  if (hits.length) {
+    let obj = hits[0].object;
+    while (obj && !obj.userData.isSecret) obj = obj.parent;
+    if (obj && obj.userData.text) {
+      showSecret(obj.userData.text);
+      gsap.to(obj.scale, { x: 2, y: 2, z: 2, duration: 0.5, ease: 'power2.out', yoyo: true, repeat: 1 });
+    }
+  }
+});
+
+/* Double-click → plant a burst of leaves */
+const burstGeo = makeLeafGeometry(12);
+const burstMat = registerFoliage(makeFoliageMaterial({ color: 0x9bd6a4, windStrength: 0, sssIntensity: 0.7 }));
+window.addEventListener('dblclick', (e) => {
+  if (state.activeIndex < 1) return;
+  ndc.x = (e.clientX/window.innerWidth)*2 - 1;
+  ndc.y = -(e.clientY/window.innerHeight)*2 + 1;
+  raycaster.setFromCamera(ndc, camera);
+  const point = raycaster.ray.at(4, new THREE.Vector3());
+  const cur = alcoves[state.activeIndex];
+  for (let i = 0; i < 14; i++) {
+    const leaf = new THREE.Mesh(burstGeo, burstMat.clone());
+    leaf.position.copy(point);
+    leaf.scale.setScalar(0.18 + Math.random()*0.15);
+    cur.group.add(leaf);
+    const dx = (Math.random()-0.5)*2.5;
+    const dy = (Math.random()-0.5)*2.5;
+    const dz = (Math.random()-0.5)*1.5;
+    gsap.to(leaf.position, { x: leaf.position.x+dx, y: leaf.position.y+dy, z: leaf.position.z+dz, duration: 2.2, ease: 'power2.out' });
+    gsap.to(leaf.rotation, { x: Math.PI*2*Math.random(), y: Math.PI*2*Math.random(), z: Math.PI*Math.random(), duration: 2.2 });
+    gsap.to(leaf.material, { opacity: 0, duration: 2.2, delay: 0.5, ease: 'power2.in',
+      onStart: () => { leaf.material.transparent = true; },
+      onComplete: () => { cur.group.remove(leaf); leaf.material.dispose(); } });
+  }
+});
+
+/* G — grow mode */
+const toast = document.getElementById('toast');
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toast.classList.remove('show'), 1800);
+}
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'g' || e.key === 'G') {
+    state.growMode = !state.growMode;
+    showToast(state.growMode ? '✦ wind rising' : 'still');
+  }
+});
+
+/* ========== AUDIO ========== */
+const Audio = {
+  ctx: null, master: null, noiseBuf: null, scenes: [], muted: true,
+  init() {
+    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
+    this.master = this.ctx.createGain(); this.master.gain.value = 0; this.master.connect(this.ctx.destination);
+    const len = 2 * this.ctx.sampleRate;
+    this.noiseBuf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const a = this.noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) a[i] = Math.random()*2 - 1;
+    this.scenes[0] = this.makeScene({ freqs:[98,147], noiseHz:600, noiseQ:1,   vol:0.10 });
+    this.scenes[1] = this.makeScene({ freqs:[98,147,220], noiseHz:1200, noiseQ:1.2, vol:0.14 });
+    this.scenes[2] = this.makeScene({ freqs:[196,247,294], type:'triangle', noiseHz:2400, noiseQ:0.7, vol:0.12 });
+    this.scenes[3] = this.makeScene({ freqs:[65,98], noiseHz:220, noiseQ:3, vol:0.16 });
+    this.scenes[4] = this.makeScene({ freqs:[294,392,587], noiseHz:4000, noiseQ:2, vol:0.09 });
+    this.scenes[5] = this.makeScene({ freqs:[110,165,220], type:'sawtooth', noiseHz:800, noiseQ:2.2, vol:0.10, padFilter:380 });
+    this.scenes[6] = this.makeScene({ freqs:[261,392,523], noiseHz:5200, noiseQ:3, vol:0.08, padFilter:1400 });
+    this.scenes[7] = this.makeScene({ freqs:[110,165], noiseHz:600, noiseQ:1, vol:0.10 });
+  },
+  makeScene({ freqs, type='sine', noiseHz=1000, noiseQ=1, vol=0.1, padFilter=null }) {
+    const g = this.ctx.createGain(); g.gain.value = 0; g.connect(this.master);
+    let padOut = g;
+    if (padFilter) { const f = this.ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=padFilter; f.connect(g); padOut = f; }
+    freqs.forEach((f) => {
+      const osc = this.ctx.createOscillator(); osc.type = type; osc.frequency.value = f;
+      const og = this.ctx.createGain(); og.gain.value = 0.1/freqs.length;
+      const lfo = this.ctx.createOscillator(); lfo.frequency.value = 0.07 + Math.random()*0.18;
+      const lg = this.ctx.createGain(); lg.gain.value = 1.5 + Math.random()*3;
+      lfo.connect(lg).connect(osc.detune);
+      osc.connect(og).connect(padOut);
+      osc.start(); lfo.start();
+    });
+    const n = this.ctx.createBufferSource(); n.buffer = this.noiseBuf; n.loop = true;
+    const nf = this.ctx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = noiseHz; nf.Q.value = noiseQ;
+    const ng = this.ctx.createGain(); ng.gain.value = 0.07;
+    const nlfo = this.ctx.createOscillator(); nlfo.frequency.value = 0.05 + Math.random()*0.1;
+    const nlg = this.ctx.createGain(); nlg.gain.value = 0.05;
+    nlfo.connect(nlg).connect(ng.gain); nlfo.start();
+    n.connect(nf).connect(ng).connect(g); n.start();
+    return { gain: g, vol };
+  },
+  activate(i) {
+    if (!this.ctx) return;
+    this.scenes.forEach((s, j) => {
+      if (!s) return;
+      gsap.to(s.gain.gain, { value: j === i ? s.vol : 0, duration: 1.8, ease: 'sine.inOut' });
+    });
+  },
+  setMute(m) { if (!this.ctx) return; this.muted = m; gsap.to(this.master.gain, { value: m ? 0 : 0.55, duration: 0.6 }); },
+  resume() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+};
+const soundBtn = document.getElementById('soundToggle');
+soundBtn.addEventListener('click', () => {
+  Audio.setMute(!Audio.muted);
+  soundBtn.classList.toggle('on', !Audio.muted);
+  if (!Audio.muted) Audio.resume();
+});
+
+/* ========== GATE / READY ========== */
+const gate = document.getElementById('gate');
+const loadingProgress = document.querySelector('#loading-progress span');
+const enterSound = document.getElementById('enterWithSound');
+const enterSilent = document.getElementById('enterSilent');
+
+/* simulate readiness once first frame rendered */
+let firstFrame = false;
+function markReady() {
+  if (firstFrame) return;
+  firstFrame = true;
+  loadingProgress.style.width = '100%';
+  enterSound.textContent = 'Enter · with sound';
+  enterSound.disabled = false;
+  enterSilent.disabled = false;
+}
+requestAnimationFrame(() => { loadingProgress.style.width = '40%'; });
+setTimeout(() => loadingProgress.style.width = '80%', 350);
+setTimeout(markReady, 700);
+
+function closeGate() {
+  gate.classList.add('hide');
+  setActiveAlcove(0);
+}
+enterSound.addEventListener('click', () => {
+  Audio.init(); Audio.resume(); Audio.setMute(false);
+  soundBtn.classList.add('on'); closeGate();
+});
+enterSilent.addEventListener('click', () => {
+  Audio.init(); Audio.setMute(true); closeGate();
+});
+
+window.addEventListener('load', () => setTimeout(() => ScrollTrigger.refresh(), 600));
+</script>
+</body>
+</html>
